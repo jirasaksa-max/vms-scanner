@@ -37,20 +37,24 @@ class ThaiIdCardParser(private val reader: CcidCardReader) {
             // 1. Power On ชิปการ์ด
             val atr = reader.powerOn()
             if (atr == null || atr.isEmpty()) {
-                root.put("error", "ไม่สามารถจ่ายไฟให้ชิปการ์ดได้ (กรุณาเสียบบัตรให้แน่น)")
+                root.put("error", "ไม่สามารถอ่านชิปการ์ดได้ (กรุณาเสียบบัตรให้แน่นตามลูกศร)")
                 return root.toString()
             }
 
             // 2. Select MOI Application
             val selRes = reader.sendApdu(SELECT_MOI_APPLET)
             if (selRes == null || !isSuccess(selRes)) {
-                root.put("error", "ไม่พบบริการบัตรประชาชนไทยบนชิปนี้")
+                root.put("error", "ไม่พบข้อมูลบัตรประชาชนไทย (กรุณาตรวจสอบว่าหันด้านชิปทองเหลืองถูกต้อง)")
                 return root.toString()
             }
 
             // 3. อ่านเลขประจำตัวประชาชน 13 หลัก (Offset 0x0004, Length 13)
             val cidBytes = readBinary(0x00, 0x04, 13)
             val cid = cidBytes?.let { String(it, Charsets.US_ASCII).trim() } ?: ""
+            if (cid.isEmpty()) {
+                root.put("error", "ไม่สามารถดึงเลขประจำตัวประชาชนได้ กรุณาลองใหม่อีกครั้ง")
+                return root.toString()
+            }
             root.put("cid", cid)
 
             // 4. อ่านชื่อ-นามสกุล ภาษาไทย (Offset 0x0011, Length 100)
@@ -117,7 +121,7 @@ class ThaiIdCardParser(private val reader: CcidCardReader) {
                 root.put("expireDate", formatThaiDate(String(expBytes, Charsets.US_ASCII).trim()))
             }
 
-            // 10. อ่านรูปถ่ายหน้าตรงจากชิป (ประมาณ 5KB)
+            // 10. อ่านรูปถ่ายหน้าตรงจากชิป (จำกัดเวลาเพื่อไม่ให้ค้าง)
             if (includePhoto) {
                 try {
                     val photoBase64 = readPhoto()
@@ -125,7 +129,7 @@ class ThaiIdCardParser(private val reader: CcidCardReader) {
                         root.put("photoBase64", photoBase64)
                     }
                 } catch (e: Exception) {
-                    Log.w(TAG, "Read photo error, proceeding with text only", e)
+                    Log.w(TAG, "Read photo error, proceeding with text data", e)
                 }
             }
 
@@ -133,7 +137,7 @@ class ThaiIdCardParser(private val reader: CcidCardReader) {
 
         } catch (e: Exception) {
             Log.e(TAG, "Card read exception", e)
-            root.put("error", e.message ?: "เกิดข้อผิดพลาดในการอ่านข้อมูลจากชิป")
+            root.put("error", e.message ?: "เกิดข้อผิดพลาดในการติดต่อชิปการ์ด")
         }
 
         return root.toString()
@@ -156,7 +160,7 @@ class ThaiIdCardParser(private val reader: CcidCardReader) {
     }
 
     /**
-     * ดึงภาพถ่ายหน้าตรงจากชิปการ์ด (อ่านต่อเนื่อง 20 บล็อก บล็อกละ 254 ไบต์)
+     * ดึงภาพถ่ายหน้าตรงจากชิปการ์ด
      */
     private fun readPhoto(): String {
         val bos = ByteArrayOutputStream()
@@ -166,7 +170,8 @@ class ThaiIdCardParser(private val reader: CcidCardReader) {
         for (i in 0 until 20) {
             val p1 = (offset shr 8) and 0xFF
             val p2 = offset and 0xFF
-            val chunk = readBinary(p1, p2, blockSize) ?: break
+            val chunk = readBinary(p1, p2, blockSize)
+            if (chunk == null || chunk.isEmpty()) break
             bos.write(chunk)
             offset += blockSize
         }
@@ -174,7 +179,6 @@ class ThaiIdCardParser(private val reader: CcidCardReader) {
         val allBytes = bos.toByteArray()
         if (allBytes.isEmpty()) return ""
 
-        // ค้นหาตำแหน่ง Header JPEG (0xFF, 0xD8) และ Tail JPEG (0xFF, 0xD9)
         var startIndex = -1
         var endIndex = -1
 
@@ -242,9 +246,6 @@ class ThaiIdCardParser(private val reader: CcidCardReader) {
         return sb.toString().trim()
     }
 
-    /**
-     * แปลง พ.ศ. เช่น 25330115 เป็น วันที่อ่านง่าย
-     */
     private fun formatThaiDate(raw: String): String {
         if (raw.length == 8) {
             val year = raw.substring(0, 4)

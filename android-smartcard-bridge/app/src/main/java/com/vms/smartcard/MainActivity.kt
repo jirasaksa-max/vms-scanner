@@ -10,6 +10,7 @@ import android.hardware.usb.UsbManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import android.view.View
 import android.webkit.PermissionRequest
@@ -39,7 +40,7 @@ class MainActivity : AppCompatActivity() {
     private var activeDevice: UsbDevice? = null
     private var ccidReader: CcidCardReader? = null
     private var isReading = false
-    private var lastReadCid = ""
+    private var cardInserted = false
     private var autoDetectJob: Job? = null
 
     private var fileUploadCallback: ValueCallback<Array<Uri>>? = null
@@ -47,8 +48,6 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "VmsMainActivity"
         private const val ACTION_USB_PERMISSION = "com.vms.smartcard.USB_PERMISSION"
-        
-        // Google Apps Script Web App URL ของระบบ VMS
         const val WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyAyyWSW7XS58H9I8RgauHPRLWB1u0u4VzKuvMSy_MwLq9rz19eqMvqhUQwbusEhFHK/exec"
     }
 
@@ -71,7 +70,7 @@ class MainActivity : AppCompatActivity() {
                             }
                         } else {
                             Log.w(TAG, "USB Permission denied for device: ${device?.deviceName}")
-                            notifyWebStatus("error", "ไม่ได้รับอนุญาตให้เข้าถึง USB")
+                            notifyWebStatus("error", "ไม่ได้รับสิทธิ์เข้าถึงอุปกรณ์ USB")
                         }
                     }
                 }
@@ -99,10 +98,7 @@ class MainActivity : AppCompatActivity() {
         setupBackNavigation()
         registerUsbReceiver()
 
-        // ตรวจสอบเครื่องอ่านบัตรที่เสียบค้างไว้ตั้งแต่ก่อนเปิดแอป
         checkConnectedUsbDevices()
-
-        // โหลดหน้าเว็บ VMS
         webView.loadUrl(WEB_APP_URL)
     }
 
@@ -118,7 +114,6 @@ class MainActivity : AppCompatActivity() {
         settings.useWideViewPort = true
         settings.loadWithOverviewMode = true
 
-        // เชื่อมต่อ JavaScript Interface ในชื่อ "AndroidSmartCard"
         webView.addJavascriptInterface(WebAppInterface(this), "AndroidSmartCard")
 
         webView.webViewClient = object : WebViewClient() {
@@ -126,9 +121,8 @@ class MainActivity : AppCompatActivity() {
                 super.onPageFinished(view, url)
                 progressBar.visibility = View.GONE
 
-                // แจ้งสถานะ Smart Card ให้หน้าเว็บทราบทันทีที่โหลดเสร็จ
                 if (isReaderConnected()) {
-                    notifyWebStatus("connected", "เชื่อมต่อเครื่องอ่าน Type-C แล้ว")
+                    notifyWebStatus("connected", "พร้อมอ่านบัตร (เสียบบัตรได้เลย)")
                 } else {
                     notifyWebStatus("waiting", "กรุณาเสียบเครื่องอ่าน Type-C")
                 }
@@ -149,7 +143,6 @@ class MainActivity : AppCompatActivity() {
                 request?.grant(request.resources)
             }
 
-            // รองรับการกดเลือกไฟล์/เปิดกล้องบนหน้าเว็บ
             override fun onShowFileChooser(
                 webView: WebView?,
                 filePathCallback: ValueCallback<Array<Uri>>?,
@@ -205,15 +198,12 @@ class MainActivity : AppCompatActivity() {
             addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(usbReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(usbReceiver, filter, Context.RECEIVER_EXPORTED)
         } else {
             registerReceiver(usbReceiver, filter)
         }
     }
 
-    /**
-     * ค้นหาเครื่องอ่านบัตร USB ที่เสียบอยู่
-     */
     private fun checkConnectedUsbDevices() {
         val deviceList = usbManager.deviceList
         for ((_, device) in deviceList) {
@@ -232,7 +222,6 @@ class MainActivity : AppCompatActivity() {
     private fun isSmartCardReader(device: UsbDevice): Boolean {
         for (i in 0 until device.interfaceCount) {
             val intf = device.getInterface(i)
-            // Class 11 (0x0B) คือ USB CCID Smart Card Reader
             if (intf.interfaceClass == CcidCardReader.USB_CLASS_CCID) {
                 return true
             }
@@ -276,29 +265,33 @@ class MainActivity : AppCompatActivity() {
         ccidReader?.disconnect()
         ccidReader = null
         activeDevice = null
-        lastReadCid = ""
+        cardInserted = false
         notifyWebStatus("waiting", "เครื่องอ่านบัตรถูกถอดออก")
     }
 
     /**
-     * ระบบวนตรวจสอบการเสียบบัตรประชาชนอัตโนมัติ (เสียบปุ๊บอ่านปั๊บทันที)
+     * ระบบตรวจจับการเสียบบัตรผ่าน CCID Slot Status (เบาและไม่ทำให้เครื่องอ่านค้าง)
      */
     private fun startAutoCardDetection() {
         stopAutoCardDetection()
         autoDetectJob = CoroutineScope(Dispatchers.IO).launch {
             while (isActive) {
-                delay(1200)
+                delay(1500)
                 if (isReading || ccidReader == null) continue
 
                 try {
                     val reader = ccidReader ?: continue
-                    val atr = reader.powerOn()
-                    if (atr != null && atr.isNotEmpty()) {
-                        // พบการ์ดในช่องอ่าน!
-                        readCardInternal(reader)
-                    } else {
-                        // ไม่มีการ์ดในช่องอ่าน -> ล้างสถานะบัตรล่าสุดเพื่อให้อ่านบัตรเดิมซ้ำได้เมื่อเสียบใหม่
-                        lastReadCid = ""
+                    val slotStatus = reader.getSlotStatus()
+
+                    if (slotStatus == 0 || slotStatus == 1) {
+                        // พบการเสียบบัตร
+                        if (!cardInserted) {
+                            cardInserted = true
+                            readCardInternal(reader)
+                        }
+                    } else if (slotStatus == 2) {
+                        // ดึงบัตรออกแล้ว
+                        cardInserted = false
                     }
                 } catch (e: Exception) {
                     // Ignored in loop
@@ -313,15 +306,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * สั่งอ่านบัตรจากภายนอก (ผ่านปุ่มกดบนหน้าเว็บ)
+     * สั่งอ่านบัตรทันทีจากปุ่มบนหน้าเว็บ
      */
     fun readCardAsync() {
-        if (isReading) return
         val reader = ccidReader
         if (reader == null) {
             runOnUiThread {
                 Toast.makeText(this, "กรุณาเสียบเครื่องอ่านบัตร Type-C ก่อนครับ", Toast.LENGTH_SHORT).show()
                 notifyWebStatus("waiting", "ไม่พบเครื่องอ่านบัตร")
+                sendJsonToWeb("""{"error":"ไม่พบการเชื่อมต่อเครื่องอ่านบัตร Type-C"}""")
             }
             return
         }
@@ -332,7 +325,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private suspend fun readCardInternal(reader: CcidCardReader, force: Boolean = false) {
-        if (isReading) return
+        if (isReading && !force) return
         isReading = true
 
         withContext(Dispatchers.Main) {
@@ -344,20 +337,52 @@ class MainActivity : AppCompatActivity() {
             val jsonResult = parser.readFullCard(includePhoto = true)
 
             withContext(Dispatchers.Main) {
-                // ส่งผลลัพธ์ JSON เข้า JavaScript ในหน้าเว็บ
-                val safeJsJson = jsonResult.replace("\\", "\\\\").replace("'", "\\'").replace("\n", "").replace("\r", "")
-                webView.evaluateJavascript("if (typeof window.onSmartCardRead === 'function') { window.onSmartCardRead('$safeJsJson'); }", null)
-                notifyWebStatus("connected", "อ่านข้อมูลบัตรเรียบร้อย")
+                sendJsonToWeb(jsonResult)
             }
 
         } catch (e: Exception) {
             Log.e(TAG, "Read card error", e)
             withContext(Dispatchers.Main) {
-                notifyWebStatus("error", "อ่านบัตรผิดพลาด: ${e.message}")
+                val errMsg = e.message ?: "เกิดข้อผิดพลาดในการอ่านข้อมูล"
+                notifyWebStatus("error", errMsg)
+                sendJsonToWeb("""{"error":"$errMsg"}""")
             }
         } finally {
-            delay(1000)
+            delay(800)
             isReading = false
+        }
+    }
+
+    /**
+     * ส่งข้อมูล JSON เข้า JavaScript ในหน้าเว็บอย่างปลอดภัย 100% ผ่าน Base64 Decoder
+     */
+    private fun sendJsonToWeb(jsonString: String) {
+        try {
+            val base64Data = Base64.encodeToString(jsonString.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
+            val script = """
+                (function() {
+                    try {
+                        var binary = atob('$base64Data');
+                        var bytes = new Uint8Array(binary.length);
+                        for (var i = 0; i < binary.length; i++) {
+                            bytes[i] = binary.charCodeAt(i);
+                        }
+                        var decoded = new TextDecoder('utf-8').decode(bytes);
+                        var data = JSON.parse(decoded);
+                        if (typeof window.onSmartCardRead === 'function') {
+                            window.onSmartCardRead(data);
+                        }
+                    } catch(e) {
+                        console.error("SmartCard parse error:", e);
+                        if (typeof window.onSmartCardStatus === 'function') {
+                            window.onSmartCardStatus('error', 'แปลงข้อมูลขัดข้อง: ' + e.message);
+                        }
+                    }
+                })();
+            """.trimIndent()
+            webView.evaluateJavascript(script, null)
+        } catch (e: Exception) {
+            Log.e(TAG, "sendJsonToWeb error", e)
         }
     }
 
