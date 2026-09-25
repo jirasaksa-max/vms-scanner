@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">จุดตรวจ รปภ. (Smart Card)</string>
+    <string name="usb_permission_prompt">อนุญาตให้แอปเข้าถึงเครื่องอ่านบัตรประชาชน Type-C</string>
+</resources>
