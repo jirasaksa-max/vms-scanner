@@ -1,12 +1,9 @@
 name: Build VMS Android APK
 
 on:
-  workflow_dispatch: # อนุญาตให้กดสั่ง Build ได้ด้วยตนเองผ่านหน้าเว็บ GitHub
+  workflow_dispatch:
   push:
     branches: [ main, master ]
-    paths:
-      - 'android-smartcard-bridge/**'
-      - '.github/workflows/build-apk.yml'
 
 jobs:
   build:
@@ -26,12 +23,15 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Setup Gradle 8.5
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.5'
+
       - name: Build Debug APK with Gradle
         run: |
           cd android-smartcard-bridge
-          gradle wrapper
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          gradle assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK to GitHub Artifacts
         uses: actions/upload-artifact@v4
