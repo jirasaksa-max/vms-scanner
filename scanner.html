@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>VMS QR Scanner Gateway (ทางผ่านสแกนกล้องสด)</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- HTML5 QR Code Scanner -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Prompt', sans-serif;
+      touch-action: manipulation;
+    }
+    /* Animated laser beam */
+    @keyframes scanBeam {
+      0% { top: 10%; opacity: 0.2; }
+      50% { top: 90%; opacity: 1; }
+      100% { top: 10%; opacity: 0.2; }
+    }
+    .scanner-laser {
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #3b82f6, #60a5fa, transparent);
+      box-shadow: 0 0 12px #3b82f6;
+      animation: scanBeam 2s infinite ease-in-out;
+      pointer-events: none;
+    }
+    #reader video {
+      border-radius: 1rem;
+      object-fit: cover !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex flex-col justify-between select-none">
+
+  <!-- Top Bar -->
+  <header class="p-4 bg-slate-900/80 backdrop-blur border-b border-slate-800 flex items-center justify-between z-10">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-lg">
+        📷
+      </div>
+      <div>
+        <h1 class="text-sm font-bold leading-tight">กล้องสแกน QR Code (60 FPS)</h1>
+        <p class="text-[11px] text-slate-400">GitHub Scanner Gateway (เลี่ยง iframe)</p>
+      </div>
+    </div>
+    <button onclick="closeOrGoBack()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold border border-slate-700 active:scale-95 transition">
+      ปิด / กลับ
+    </button>
+  </header>
+
+  <!-- Main Scanner Area -->
+  <main class="flex-1 flex flex-col items-center justify-center p-4 relative">
+
+    <!-- Camera Viewport Container -->
+    <div class="relative w-full max-w-sm aspect-square bg-slate-900 rounded-2xl overflow-hidden border-2 border-slate-700 shadow-2xl flex items-center justify-center">
+      
+      <!-- Video Element Rendered by html5-qrcode -->
+      <div id="reader" class="w-full h-full"></div>
+
+      <!-- Laser Beam -->
+      <div id="laserBeam" class="scanner-laser"></div>
+
+      <!-- Reticle / Corners Overlay -->
+      <div class="absolute inset-8 pointer-events-none border border-white/20 rounded-xl flex flex-col justify-between">
+        <div class="flex justify-between">
+          <div class="w-6 h-6 border-t-4 border-l-4 border-blue-500 rounded-tl-lg"></div>
+          <div class="w-6 h-6 border-t-4 border-r-4 border-blue-500 rounded-tr-lg"></div>
+        </div>
+        <div class="flex justify-between">
+          <div class="w-6 h-6 border-b-4 border-l-4 border-blue-500 rounded-bl-lg"></div>
+          <div class="w-6 h-6 border-b-4 border-r-4 border-blue-500 rounded-br-lg"></div>
+        </div>
+      </div>
+
+      <!-- Scanned Result Success Banner (Hidden by default) -->
+      <div id="scannedSuccessBox" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-20 space-y-3">
+        <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center text-3xl animate-bounce">
+          ✓
+        </div>
+        <div class="text-xs text-slate-400 uppercase tracking-widest font-semibold">สแกนสำเร็จ</div>
+        <div id="scannedCodeText" class="text-3xl font-black font-mono tracking-widest text-emerald-400 bg-emerald-950/60 px-4 py-2 rounded-xl border border-emerald-500/30">
+          V-001
+        </div>
+        <p id="sendingNotice" class="text-xs text-slate-300 animate-pulse">กำลังส่งรหัสกลับไปยังระบบ รปภ....</p>
+      </div>
+
+    </div>
+
+    <!-- Instructions below camera -->
+    <div class="mt-4 text-center space-y-1">
+      <p class="text-xs font-medium text-slate-300">ส่องกล้องไปที่ QR Code บนบัตรผู้มาติดต่อ</p>
+      <p class="text-[11px] text-slate-500">ระบบจะตรวจจับอัตโนมัติ ไม่ต้องกดถ่ายภาพ</p>
+    </div>
+
+  </main>
+
+  <!-- Bottom Action Bar -->
+  <footer class="p-4 bg-slate-900/80 border-t border-slate-800 flex items-center justify-between gap-3 text-xs text-slate-400">
+    <div class="flex items-center gap-2">
+      <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+      <span id="cameraStatus">กล้องพร้อมทำงาน (60 FPS)</span>
+    </div>
+    <button onclick="toggleCameraFacing()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-medium border border-slate-700 active:scale-95 transition">
+      🔄 สลับกล้อง
+    </button>
+  </footer>
+
+  <script>
+    // อ่านค่าพารามิเตอร์จาก URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetInput = urlParams.get('target') || 'inPassCode'; // 'inPassCode' หรือ 'outPassCode'
+    const returnUrl = urlParams.get('returnUrl') || '';          // URL ของระบบ GAS สำหรับ Redirect กลับหาก popup ไม่รองรับ
+
+    let html5QrCode = null;
+    let currentFacingMode = "environment"; // กล้องหลังเป็นค่าเริ่มต้น
+    let isScanned = false;
+
+    // ระบบเสียงสังเคราะห์ Beep ด้วย Web Audio API (ไม่ต้องพึ่งไฟล์ mp3 ภายนอก)
+    function playBeep() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // โน้ต A5
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + 0.15);
+      } catch (e) {
+        console.warn('AudioContext not supported');
+      }
+    }
+
+    // เริ่มต้นเปิดกล้อง
+    function startScanner() {
+      if (html5QrCode) {
+        html5QrCode.stop().then(() => initScannerInstance()).catch(() => initScannerInstance());
+      } else {
+        initScannerInstance();
+      }
+    }
+
+    function initScannerInstance() {
+      html5QrCode = new Html5Qrcode("reader");
+      const config = {
+        fps: 25,
+        qrbox: function(viewfinderWidth, viewfinderHeight) {
+          const edgeSize = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.75);
+          return { width: edgeSize, height: edgeSize };
+        },
+        aspectRatio: 1.0
+      };
+
+      html5QrCode.start(
+        { facingMode: currentFacingMode },
+        config,
+        onScanSuccess
+      ).catch(err => {
+        document.getElementById('cameraStatus').innerText = 'เปิดกล้องไม่ได้: ' + err;
+        console.error('Camera start error:', err);
+      });
+    }
+
+    function onScanSuccess(decodedText) {
+      if (isScanned) return;
+      isScanned = true;
+
+      const cleanCode = decodedText.trim().toUpperCase();
+
+      // สั่นเตือน + เสียง Beep
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+      playBeep();
+
+      // หยุดการสแกนชั่วคราว
+      if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().catch(() => {});
+      }
+
+      // แสดงผลกล่องข้อความสำเร็จ
+      document.getElementById('scannedCodeText').innerText = cleanCode;
+      document.getElementById('laserBeam').classList.add('hidden');
+      document.getElementById('scannedSuccessBox').classList.remove('hidden');
+
+      // 1. ส่งผลลัพธ์กลับผ่าน postMessage (กรณีเปิดแบบ window.open จาก GAS)
+      let sentViaPostMessage = false;
+      if (window.opener && !window.opener.closed) {
+        try {
+          window.opener.postMessage({
+            type: 'VMS_QR_SCANNED',
+            code: cleanCode,
+            target: targetInput
+          }, '*');
+          sentViaPostMessage = true;
+        } catch (e) {
+          console.warn('postMessage to opener failed:', e);
+        }
+      }
+
+      // 2. บันทึกผลลัพธ์ลง localStorage ด้วย เพื่อให้แท็บแม่ดึงได้อีกทาง
+      try {
+        localStorage.setItem('VMS_LAST_SCANNED', JSON.stringify({
+          code: cleanCode,
+          target: targetInput,
+          time: Date.now()
+        }));
+      } catch (e) {}
+
+      // ปิดหน้าต่างหรือนำทางกลับ
+      setTimeout(() => {
+        if (sentViaPostMessage) {
+          window.close();
+        } else if (returnUrl) {
+          // หากไม่มี window.opener (เช่น เปิดในเบราว์เซอร์แยกแท็บ) ให้ Redirect กลับไปที่ GAS ทันที
+          const separator = returnUrl.includes('?') ? '&' : '?';
+          const targetTab = (targetInput === 'outPassCode') ? 'tabCheckOut' : 'tabCheckIn';
+          window.location.href = `${returnUrl}${separator}pass=${encodeURIComponent(cleanCode)}&tab=${targetTab}`;
+        } else {
+          // หากไม่มีทั้งคู่ แสดงปุ่มให้ผู้ใช้เลือก
+          document.getElementById('sendingNotice').innerHTML = `
+            <div class="space-y-2 pt-2">
+              <p class="text-xs text-emerald-300">คัดลอกรหัสเรียบร้อยแล้ว</p>
+              <button onclick="window.close()" class="w-full py-2 bg-blue-600 text-white rounded-lg font-bold text-xs">
+                ปิดหน้าต่างนี้แล้วกลับไปหน้าหลัก
+              </button>
+            </div>
+          `;
+        }
+      }, 500);
+    }
+
+    function toggleCameraFacing() {
+      currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
+      startScanner();
+    }
+
+    function closeOrGoBack() {
+      if (window.opener && !window.opener.closed) {
+        window.close();
+      } else if (returnUrl) {
+        window.location.href = returnUrl;
+      } else {
+        history.back();
+      }
+    }
+
+    // เริ่มทำงานเมื่อเปิดหน้า
+    window.addEventListener('DOMContentLoaded', () => {
+      startScanner();
+    });
+  </script>
+</body>
+</html>
