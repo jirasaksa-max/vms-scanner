@@ -688,6 +688,7 @@
           </div>
           <div>
             <h4 class="font-extrabold text-base text-slate-900 leading-tight" id="detailVisitorName">ชื่อผู้มาติดต่อ</h4>
+            <div class="text-xs text-slate-500 font-medium hidden" id="detailVisitorNameEn"></div>
             <div class="flex items-center gap-2 mt-0.5" id="detailStatusBadgeContainer">
               <!-- status badge -->
             </div>
@@ -993,13 +994,18 @@
         const hours = Math.floor(diffMins / 60);
         const mins = diffMins % 60;
         const durationStr = hours > 0 ? `${hours} ชม. ${mins} นาที` : `${mins} นาที`;
-        const fullName = `${item.title || ''} ${item.first_name || ''} ${item.last_name || ''}`.trim() || 'ผู้มาติดต่อ';
+        const nameTh = `${item.title || ''} ${item.first_name || ''} ${item.last_name || ''}`.trim() || 'ผู้มาติดต่อ';
+        let nameEn = item.name_en || '';
+        if (!nameEn && item.guard_in_notes) {
+          const m = item.guard_in_notes.match(/\[EN:\s*([^\]]+)\]/i);
+          if (m) nameEn = m[1];
+        }
 
         html += `
           <tr class="hover:bg-blue-50/40 transition">
             <td class="py-2.5 px-3 text-center">
               ${item.photo_base64 ? `
-                <img src="${item.photo_base64}" alt="ภาพถ่าย" onclick="openPhotoModal('${item.photo_base64}', '${fullName}')" class="w-10 h-10 rounded-xl object-cover cursor-pointer hover:opacity-80 border border-slate-200 shadow-2xs mx-auto transition hover:scale-105" title="คลิกดูภาพขยาย">
+                <img src="${item.photo_base64}" alt="ภาพถ่าย" onclick="openPhotoModal('${item.photo_base64}', '${nameTh}')" class="w-10 h-10 rounded-xl object-cover cursor-pointer hover:opacity-80 border border-slate-200 shadow-2xs mx-auto transition hover:scale-105" title="คลิกดูภาพขยาย">
               ` : `
                 <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 text-sm mx-auto" title="ไม่มีรูปถ่าย">
                   👤
@@ -1009,7 +1015,10 @@
             <td class="py-3 px-4 font-mono font-bold text-blue-700">
               <span class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-lg text-xs font-mono font-bold">${item.pass_code}</span>
             </td>
-            <td class="py-3 px-4 font-bold text-slate-900">${fullName}</td>
+            <td class="py-3 px-4">
+              <div class="font-bold text-slate-900">${nameTh}</div>
+              ${nameEn ? `<div class="text-[10px] text-slate-500 font-medium">(${nameEn})</div>` : ''}
+            </td>
             <td class="py-3 px-4 font-mono text-slate-500">${item.id_card_number || '-'}</td>
             <td class="py-3 px-4">
               <span class="bg-amber-50 text-amber-800 border border-amber-200 font-semibold px-2 py-0.5 rounded-lg text-xs">${item.department_or_house || item.contact_person || '-'}</span>
@@ -1158,6 +1167,13 @@
         // เลขบัตร ปชช. (PDPA Masked)
         const maskedCid = maskIdCardDisplay(item.id_card_number);
 
+        const rowNameTh = `${item.title || ''} ${item.first_name || ''} ${item.last_name || ''}`.trim() || 'ผู้มาติดต่อ';
+        let rowNameEn = item.name_en || '';
+        if (!rowNameEn && item.guard_in_notes) {
+          const m = item.guard_in_notes.match(/\[EN:\s*([^\]]+)\]/i);
+          if (m) rowNameEn = m[1];
+        }
+
         html += `
           <tr class="hover:bg-blue-50/40 transition text-xs">
             <td class="py-2.5 px-3 font-mono font-bold text-blue-700">
@@ -1165,7 +1181,10 @@
             </td>
             <td class="py-2.5 px-3">${statusBadge}</td>
             <td class="py-2.5 px-3">${photoThumb}</td>
-            <td class="py-2.5 px-3 font-bold text-slate-900 whitespace-nowrap">${item.title || ''} ${item.first_name || ''} ${item.last_name || ''}</td>
+            <td class="py-2.5 px-3 whitespace-nowrap">
+              <div class="font-bold text-slate-900">${rowNameTh}</div>
+              ${rowNameEn ? `<div class="text-[10px] text-slate-500 font-medium">(${rowNameEn})</div>` : ''}
+            </td>
             <td class="py-2.5 px-3 font-mono text-slate-600 tracking-wider">${maskedCid}</td>
             <td class="py-2.5 px-3 font-semibold text-amber-900">
               <span class="bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md">${item.department_or_house || item.contact_person || '-'}</span>
@@ -1248,8 +1267,25 @@
     function openVisitorDetailModal(item) {
       document.getElementById('detailPassCode').innerText = item.pass_code || '-';
       const fullName = `${item.title || ''} ${item.first_name || ''} ${item.last_name || ''}`.trim() || 'ผู้มาติดต่อ';
+      
+      let nameEn = item.visitor_name_en || item.name_en || '';
+      if (!nameEn && item.guard_in_notes) {
+        const m = item.guard_in_notes.match(/\[EN:\s*([^\]]+)\]/i);
+        if (m) nameEn = m[1].trim();
+      }
+
       document.getElementById('detailVisitorName').innerText = fullName;
-      document.getElementById('detailFullName').innerText = fullName;
+      const elEn = document.getElementById('detailVisitorNameEn');
+      if (elEn) {
+        if (nameEn) {
+          elEn.innerText = nameEn;
+          elEn.classList.remove('hidden');
+        } else {
+          elEn.innerText = '';
+          elEn.classList.add('hidden');
+        }
+      }
+      document.getElementById('detailFullName').innerText = fullName + (nameEn ? ` (${nameEn})` : '');
       document.getElementById('detailIdCard').innerText = item.id_card_number || '-';
       document.getElementById('detailAddress').innerText = item.address || '-';
       document.getElementById('detailDepartment').innerText = item.department_or_house || item.contact_person || '-';
@@ -1421,6 +1457,7 @@
                       <div class="font-extrabold text-slate-900 text-xs truncate" title="${visitorName}">
                         ${visitorName}
                       </div>
+                      ${p.visitor_name_en ? `<div class="text-[10px] text-slate-500 font-medium truncate" title="${p.visitor_name_en}">(${p.visitor_name_en})</div>` : ''}
                       <div class="text-[10px] text-amber-800/80 truncate font-medium">
                         ${p.purpose || 'ติดต่อทั่วไป'}
                       </div>
