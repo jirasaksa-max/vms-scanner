@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "VmsMainActivity"
         private const val ACTION_USB_PERMISSION = "com.vms.smartcard.USB_PERMISSION"
-        const val WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyAyyWSW7XS58H9I8RgauHPRLWB1u0u4VzKuvMSy_MwLq9rz19eqMvqhUQwbusEhFHK/exec"
+        const val WEB_APP_URL = "https://jirasaksa-max.github.io/vms-scanner/"
     }
 
     private val usbReceiver = object : BroadcastReceiver() {
