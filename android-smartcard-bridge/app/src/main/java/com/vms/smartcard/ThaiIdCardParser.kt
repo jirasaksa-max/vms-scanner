@@ -173,18 +173,16 @@ class ThaiIdCardParser(private val reader: CcidCardReader) {
      */
     private fun readPhoto(onProgress: ((String) -> Unit)? = null): String {
         val bos = ByteArrayOutputStream()
-        var offset = 0x017B // ตำแหน่งเริ่มต้นของภาพถ่ายในชิปบัตร ปชช.
         val blockSize = 0xFE // 254 bytes
 
-        for (i in 0 until 20) {
-            val p1 = (offset shr 8) and 0xFF
-            val p2 = offset and 0xFF
+        for (i in 1..20) {
+            val p1 = i
+            val p2 = (0x7C - i) and 0xFF
             val chunk = readBinary(p1, p2, blockSize)
             if (chunk == null || chunk.isEmpty()) break
             bos.write(chunk)
-            offset += blockSize
-            if (i % 5 == 0) {
-                onProgress?.invoke("⚡ (4/4) กำลังอ่านรูปถ่ายหน้าตรง... (${i * 5}% )")
+            if (i % 4 == 0 || i == 20) {
+                onProgress?.invoke("⚡ (4/4) กำลังอ่านรูปถ่ายหน้าตรง... (${i * 5}%)")
             }
         }
 
