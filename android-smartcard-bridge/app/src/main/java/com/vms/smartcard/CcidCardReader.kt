@@ -173,16 +173,23 @@ class CcidCardReader(
                 }
 
                 // ตรวจสอบ Time Extension (bStatus & 0xC0 == 0x80)
-                while ((resp[7].toInt() and 0xC0) == 0x80) {
+                var isTimeExtension = (resp[7].toInt() and 0xC0) == 0x80
+                while (isTimeExtension) {
                     read = conn.bulkTransfer(epIn, resp, resp.size, TIMEOUT_MS)
                     if (read < 10) break
+                    isTimeExtension = (resp[7].toInt() and 0xC0) == 0x80
+                }
+                if (read < 10) {
+                    Log.w(TAG, "PowerOn bulkTransfer in read < 10 after extension (v=$v)")
+                    continue
                 }
 
                 val bStatus = resp[7].toInt() and 0xFF
-                if ((bStatus and 0x40) == 0) {
+                if ((bStatus and 0x40) == 0 && read > 10) {
                     // จ่ายไฟสำเร็จ
-                    Log.d(TAG, "PowerOn succeeded with voltage=$v, ATR length=${if (read > 10) read - 10 else 0}")
-                    return if (read > 10) resp.copyOfRange(10, read) else ByteArray(0)
+                    val atr = resp.copyOfRange(10, read)
+                    Log.d(TAG, "PowerOn succeeded with voltage=$v, ATR length=${atr.size}")
+                    return atr
                 } else {
                     val bError = resp[8].toInt() and 0xFF
                     Log.w(TAG, "PowerOn status error with v=$v: status=0x${bStatus.toString(16)}, error=0x${bError.toString(16)}")
@@ -223,9 +230,11 @@ class CcidCardReader(
             if (read < 10) return null
 
             // จัดการ Time Extension จาก Reader/Card (bStatus & 0xC0 == 0x80)
-            while ((resp[7].toInt() and 0xC0) == 0x80) {
+            var isTimeExtension = (resp[7].toInt() and 0xC0) == 0x80
+            while (isTimeExtension) {
                 read = conn.bulkTransfer(epIn, resp, resp.size, TIMEOUT_MS)
                 if (read < 10) return null
+                isTimeExtension = (resp[7].toInt() and 0xC0) == 0x80
             }
 
             val bStatus = resp[7].toInt() and 0xFF
