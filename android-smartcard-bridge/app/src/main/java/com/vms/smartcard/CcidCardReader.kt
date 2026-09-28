@@ -137,6 +137,7 @@ class CcidCardReader(
 
     /**
      * คำสั่ง CCID: PC_to_RDR_IccPowerOn (0x62) เพื่อเริ่มจ่ายไฟให้ชิปการ์ดและรับ ATR
+     * รองรับ Fallback แรงดันไฟ: Auto (0x00) -> 5.0V (0x01) -> 3.0V (0x02) ตามมาตรฐานบัตรประชาชนไทย
      */
     fun powerOn(): ByteArray? {
         synchronized(lock) {
@@ -144,41 +145,50 @@ class CcidCardReader(
             val epOut = endpointOut ?: return null
             val epIn = endpointIn ?: return null
 
-            val cmd = ByteArray(10)
-            cmd[0] = 0x62.toByte() // PC_to_RDR_IccPowerOn
-            cmd[1] = 0 // dwLength LSB
-            cmd[2] = 0
-            cmd[3] = 0
-            cmd[4] = 0 // dwLength MSB
-            cmd[5] = 0 // bSlot
-            cmd[6] = (sequenceNumber++).toByte()
-            cmd[7] = 0 // bPowerSelect (0 = Auto)
-            cmd[8] = 0
-            cmd[9] = 0
+            val voltages = byteArrayOf(0x00, 0x01, 0x02)
+            for (v in voltages) {
+                val cmd = ByteArray(10)
+                cmd[0] = 0x62.toByte() // PC_to_RDR_IccPowerOn
+                cmd[1] = 0 // dwLength LSB
+                cmd[2] = 0
+                cmd[3] = 0
+                cmd[4] = 0 // dwLength MSB
+                cmd[5] = 0 // bSlot
+                cmd[6] = (sequenceNumber++).toByte()
+                cmd[7] = v // bPowerSelect (0 = Auto, 1 = 5V, 2 = 3V)
+                cmd[8] = 0
+                cmd[9] = 0
 
-            val sent = conn.bulkTransfer(epOut, cmd, cmd.size, TIMEOUT_MS)
-            if (sent < 0) {
-                Log.e(TAG, "PowerOn bulkTransfer out failed")
-                return null
+                val sent = conn.bulkTransfer(epOut, cmd, cmd.size, TIMEOUT_MS)
+                if (sent < 0) {
+                    Log.w(TAG, "PowerOn bulkTransfer out failed (v=$v)")
+                    continue
+                }
+
+                val resp = ByteArray(256)
+                var read = conn.bulkTransfer(epIn, resp, resp.size, TIMEOUT_MS)
+                if (read < 10) {
+                    Log.w(TAG, "PowerOn bulkTransfer in failed, read=$read (v=$v)")
+                    continue
+                }
+
+                // ตรวจสอบ Time Extension (bStatus & 0xC0 == 0x80)
+                while ((resp[7].toInt() and 0xC0) == 0x80) {
+                    read = conn.bulkTransfer(epIn, resp, resp.size, TIMEOUT_MS)
+                    if (read < 10) break
+                }
+
+                val bStatus = resp[7].toInt() and 0xFF
+                if ((bStatus and 0x40) == 0) {
+                    // จ่ายไฟสำเร็จ
+                    Log.d(TAG, "PowerOn succeeded with voltage=$v, ATR length=${if (read > 10) read - 10 else 0}")
+                    return if (read > 10) resp.copyOfRange(10, read) else ByteArray(0)
+                } else {
+                    val bError = resp[8].toInt() and 0xFF
+                    Log.w(TAG, "PowerOn status error with v=$v: status=0x${bStatus.toString(16)}, error=0x${bError.toString(16)}")
+                }
             }
-
-            val resp = ByteArray(256)
-            val read = conn.bulkTransfer(epIn, resp, resp.size, TIMEOUT_MS)
-            if (read < 10) {
-                Log.e(TAG, "PowerOn bulkTransfer in failed, read=$read")
-                return null
-            }
-
-            // ตรวจสอบ bStatus (resp[7])
-            val bStatus = resp[7].toInt() and 0xFF
-            if ((bStatus and 0x40) != 0) {
-                // Command failed (เช่น ไม่มีบัตรในช่องเสียบ)
-                Log.w(TAG, "PowerOn returned status error: $bStatus")
-                return null
-            }
-
-            // ATR data เริ่มต้นที่ byte 10
-            return if (read > 10) resp.copyOfRange(10, read) else ByteArray(0)
+            return null
         }
     }
 
@@ -209,12 +219,19 @@ class CcidCardReader(
             if (sent < 0) return null
 
             val resp = ByteArray(2048)
-            val read = conn.bulkTransfer(epIn, resp, resp.size, TIMEOUT_MS)
+            var read = conn.bulkTransfer(epIn, resp, resp.size, TIMEOUT_MS)
             if (read < 10) return null
+
+            // จัดการ Time Extension จาก Reader/Card (bStatus & 0xC0 == 0x80)
+            while ((resp[7].toInt() and 0xC0) == 0x80) {
+                read = conn.bulkTransfer(epIn, resp, resp.size, TIMEOUT_MS)
+                if (read < 10) return null
+            }
 
             val bStatus = resp[7].toInt() and 0xFF
             if ((bStatus and 0x40) != 0) {
-                Log.w(TAG, "xfrBlock status error: $bStatus")
+                val bError = resp[8].toInt() and 0xFF
+                Log.w(TAG, "xfrBlock error: status=0x${bStatus.toString(16)}, error=0x${bError.toString(16)}")
                 return null
             }
 
@@ -231,7 +248,7 @@ class CcidCardReader(
     }
 
     /**
-     * ส่งคำสั่ง APDU และจัดการเคส ISO-7816 SW1=0x61 (Get Response) อัตโนมัติ
+     * ส่งคำสั่ง APDU และจัดการเคส ISO-7816 SW1=0x61 (Get Response) และ 0x6C (Re-issue) อัตโนมัติ
      */
     fun sendApdu(apdu: ByteArray): ByteArray? {
         var res = xfrBlock(apdu) ?: return null
@@ -243,8 +260,16 @@ class CcidCardReader(
                 // มีข้อมูลรอให้ดึงขนาด sw2 bytes
                 val getResponseCmd = byteArrayOf(0x00, 0xC0.toByte(), 0x00, 0x00, sw2.toByte())
                 val getResp = xfrBlock(getResponseCmd)
-                if (getResp != null && getResp.size > 2) {
+                if (getResp != null && getResp.size >= 2) {
                     res = getResp
+                }
+            } else if (sw1 == 0x6C) {
+                // ความยาวข้อมูลไม่ตรง ให้ส่งซ้ำด้วย Le = sw2
+                val correctedApdu = apdu.copyOf()
+                correctedApdu[correctedApdu.size - 1] = sw2.toByte()
+                val retryResp = xfrBlock(correctedApdu)
+                if (retryResp != null && retryResp.size >= 2) {
+                    res = retryResp
                 }
             }
         }

@@ -30,29 +30,37 @@ class ThaiIdCardParser(private val reader: CcidCardReader) {
 
     /**
      * ดึงข้อมูลทั้งหมดจากบัตรประชาชน (รวมรูปถ่าย JPEG)
+     * รองรับ callback แสดงสถานะแบบเรียลไทม์
      */
-    fun readFullCard(includePhoto: Boolean = true): String {
+    fun readFullCard(includePhoto: Boolean = true, onProgress: ((String) -> Unit)? = null): String {
         val root = JSONObject()
         try {
             // 1. Power On ชิปการ์ด
+            onProgress?.invoke("⚡ (1/4) กำลังจ่ายไฟเข้าชิปการ์ด...")
             val atr = reader.powerOn()
-            if (atr == null || atr.isEmpty()) {
-                root.put("error", "ไม่สามารถอ่านชิปการ์ดได้ (กรุณาเสียบบัตรให้แน่นตามลูกศร)")
+            if (atr == null) {
+                root.put("error", "ไม่สามารถจ่ายไฟให้ชิปการ์ดได้ (กรุณาหันด้านชิปทองเหลืองตามลูกศรและดันเข้าให้สุดล็อก)")
                 return root.toString()
             }
+            Log.d(TAG, "Card Powered On, ATR: ${atr.joinToString("") { "%02X".format(it) }}")
 
             // 2. Select MOI Application
+            onProgress?.invoke("⚡ (2/4) กำลังเชื่อมต่อระบบบัตรประชาชน...")
             val selRes = reader.sendApdu(SELECT_MOI_APPLET)
             if (selRes == null || !isSuccess(selRes)) {
-                root.put("error", "ไม่พบข้อมูลบัตรประชาชนไทย (กรุณาตรวจสอบว่าหันด้านชิปทองเหลืองถูกต้อง)")
+                val swStr = if (selRes != null && selRes.size >= 2) {
+                    "SW=%02X%02X".format(selRes[selRes.size - 2], selRes[selRes.size - 1])
+                } else "ไม่ได้รับการตอบรับจากชิป"
+                root.put("error", "ไม่สามารถเลือกแอปพลิเคชันบัตรประชาชนได้ ($swStr) กรุณาตรวจสอบว่าหันด้านชิปทองเหลืองถูกต้อง")
                 return root.toString()
             }
 
             // 3. อ่านเลขประจำตัวประชาชน 13 หลัก (Offset 0x0004, Length 13)
+            onProgress?.invoke("⚡ (3/4) กำลังอ่านข้อมูลประจำตัวและที่อยู่...")
             val cidBytes = readBinary(0x00, 0x04, 13)
             val cid = cidBytes?.let { String(it, Charsets.US_ASCII).trim() } ?: ""
             if (cid.isEmpty()) {
-                root.put("error", "ไม่สามารถดึงเลขประจำตัวประชาชนได้ กรุณาลองใหม่อีกครั้ง")
+                root.put("error", "ไม่สามารถดึงเลขประจำตัวประชาชนได้ กรุณาลองเสียบบัตรใหม่อีกครั้ง")
                 return root.toString()
             }
             root.put("cid", cid)
@@ -121,10 +129,11 @@ class ThaiIdCardParser(private val reader: CcidCardReader) {
                 root.put("expireDate", formatThaiDate(String(expBytes, Charsets.US_ASCII).trim()))
             }
 
-            // 10. อ่านรูปถ่ายหน้าตรงจากชิป (จำกัดเวลาเพื่อไม่ให้ค้าง)
+            // 10. อ่านรูปถ่ายหน้าตรงจากชิป
             if (includePhoto) {
                 try {
-                    val photoBase64 = readPhoto()
+                    onProgress?.invoke("⚡ (4/4) กำลังอ่านรูปถ่ายหน้าตรงจากชิป...")
+                    val photoBase64 = readPhoto(onProgress)
                     if (photoBase64.isNotEmpty()) {
                         root.put("photoBase64", photoBase64)
                     }
@@ -162,7 +171,7 @@ class ThaiIdCardParser(private val reader: CcidCardReader) {
     /**
      * ดึงภาพถ่ายหน้าตรงจากชิปการ์ด
      */
-    private fun readPhoto(): String {
+    private fun readPhoto(onProgress: ((String) -> Unit)? = null): String {
         val bos = ByteArrayOutputStream()
         var offset = 0x017B // ตำแหน่งเริ่มต้นของภาพถ่ายในชิปบัตร ปชช.
         val blockSize = 0xFE // 254 bytes
@@ -174,6 +183,9 @@ class ThaiIdCardParser(private val reader: CcidCardReader) {
             if (chunk == null || chunk.isEmpty()) break
             bos.write(chunk)
             offset += blockSize
+            if (i % 5 == 0) {
+                onProgress?.invoke("⚡ (4/4) กำลังอ่านรูปถ่ายหน้าตรง... (${i * 5}% )")
+            }
         }
 
         val allBytes = bos.toByteArray()

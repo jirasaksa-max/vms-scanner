@@ -111,8 +111,14 @@ class MainActivity : AppCompatActivity() {
         settings.allowFileAccess = true
         settings.allowContentAccess = true
         settings.cacheMode = WebSettings.LOAD_DEFAULT
-        settings.useWideViewPort = true
-        settings.loadWithOverviewMode = true
+        settings.useWideViewPort = false
+        settings.loadWithOverviewMode = false
+
+        webView.isVerticalScrollBarEnabled = true
+        webView.isHorizontalScrollBarEnabled = false
+        webView.isFocusable = true
+        webView.isFocusableInTouchMode = true
+        webView.overScrollMode = View.OVER_SCROLL_ALWAYS
 
         webView.addJavascriptInterface(WebAppInterface(this), "AndroidSmartCard")
 
@@ -329,12 +335,14 @@ class MainActivity : AppCompatActivity() {
         isReading = true
 
         withContext(Dispatchers.Main) {
-            notifyWebStatus("reading", "กำลังอ่านข้อมูลจากชิปการ์ด...")
+            notifyWebStatus("reading", "⚡ กำลังเริ่มเชื่อมต่อชิปการ์ด...")
         }
 
         try {
             val parser = ThaiIdCardParser(reader)
-            val jsonResult = parser.readFullCard(includePhoto = true)
+            val jsonResult = parser.readFullCard(includePhoto = true) { progressMsg ->
+                notifyWebStatus("reading", progressMsg)
+            }
 
             withContext(Dispatchers.Main) {
                 sendJsonToWeb(jsonResult)
@@ -354,44 +362,78 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * ส่งข้อมูล JSON เข้า JavaScript ในหน้าเว็บอย่างปลอดภัย 100% ผ่าน Base64 Decoder
+     * ส่งข้อมูล JSON เข้า JavaScript ในหน้าเว็บอย่างปลอดภัย 100%
+     * ส่งตรงถึงทั้ง Window หลัก, iframe ทุกระดับ และเก็บใน WebAppInterface สำหรับการ polling
      */
     private fun sendJsonToWeb(jsonString: String) {
-        try {
-            val base64Data = Base64.encodeToString(jsonString.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
-            val script = """
-                (function() {
-                    try {
-                        var binary = atob('$base64Data');
-                        var bytes = new Uint8Array(binary.length);
-                        for (var i = 0; i < binary.length; i++) {
-                            bytes[i] = binary.charCodeAt(i);
+        WebAppInterface.updateResult(jsonString)
+        runOnUiThread {
+            try {
+                val base64Data = Base64.encodeToString(jsonString.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
+                val script = """
+                    (function() {
+                        try {
+                            var binary = atob('$base64Data');
+                            var bytes = new Uint8Array(binary.length);
+                            for (var i = 0; i < binary.length; i++) {
+                                bytes[i] = binary.charCodeAt(i);
+                            }
+                            var decoded = new TextDecoder('utf-8').decode(bytes);
+                            var data = JSON.parse(decoded);
+
+                            function dispatch(w) {
+                                try {
+                                    if (w && typeof w.onSmartCardRead === 'function') {
+                                        w.onSmartCardRead(data);
+                                    }
+                                } catch(e) {}
+                                try {
+                                    if (w && typeof w.postMessage === 'function') {
+                                        w.postMessage({ type: 'SMART_CARD_READ', data: data }, '*');
+                                    }
+                                } catch(e) {}
+                            }
+
+                            dispatch(window);
+                            for (var i = 0; i < window.frames.length; i++) {
+                                dispatch(window.frames[i]);
+                            }
+                        } catch(e) {
+                            console.error("sendJsonToWeb JS error:", e);
                         }
-                        var decoded = new TextDecoder('utf-8').decode(bytes);
-                        var data = JSON.parse(decoded);
-                        if (typeof window.onSmartCardRead === 'function') {
-                            window.onSmartCardRead(data);
-                        }
-                    } catch(e) {
-                        console.error("SmartCard parse error:", e);
-                        if (typeof window.onSmartCardStatus === 'function') {
-                            window.onSmartCardStatus('error', 'แปลงข้อมูลขัดข้อง: ' + e.message);
-                        }
-                    }
-                })();
-            """.trimIndent()
-            webView.evaluateJavascript(script, null)
-        } catch (e: Exception) {
-            Log.e(TAG, "sendJsonToWeb error", e)
+                    })();
+                """.trimIndent()
+                webView.evaluateJavascript(script, null)
+            } catch (e: Exception) {
+                Log.e(TAG, "sendJsonToWeb error", e)
+            }
         }
     }
 
     private fun notifyWebStatus(status: String, message: String) {
+        WebAppInterface.updateStatus(status, message)
         runOnUiThread {
-            webView.evaluateJavascript(
-                "if (typeof window.onSmartCardStatus === 'function') { window.onSmartCardStatus('$status', '$message'); }",
-                null
-            )
+            val script = """
+                (function() {
+                    function inform(w) {
+                        try {
+                            if (w && typeof w.onSmartCardStatus === 'function') {
+                                w.onSmartCardStatus('$status', '$message');
+                            }
+                        } catch(e) {}
+                        try {
+                            if (w && typeof w.postMessage === 'function') {
+                                w.postMessage({ type: 'SMART_CARD_STATUS', status: '$status', message: '$message' }, '*');
+                            }
+                        } catch(e) {}
+                    }
+                    inform(window);
+                    for (var i = 0; i < window.frames.length; i++) {
+                        inform(window.frames[i]);
+                    }
+                })();
+            """.trimIndent()
+            webView.evaluateJavascript(script, null)
         }
     }
 

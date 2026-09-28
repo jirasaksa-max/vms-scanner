@@ -8,6 +8,39 @@ import android.widget.Toast
  */
 class WebAppInterface(private val activity: MainActivity) {
 
+    companion object {
+        @Volatile var latestCardResult: String? = null
+        @Volatile var latestStatus: String = "waiting"
+        @Volatile var latestMessage: String = "กรุณาเสียบเครื่องอ่าน Type-C"
+
+        fun updateStatus(status: String, message: String) {
+            latestStatus = status
+            latestMessage = message
+        }
+
+        fun updateResult(json: String) {
+            latestCardResult = json
+        }
+    }
+
+    /**
+     * ดึงผลลัพธ์การอ่านบัตรล่าสุด (สำหรับ JavaScript ฝั่ง iframe โพลลิ่งผลลัพธ์ ป้องกันปัญหา Cross-Origin)
+     */
+    @JavascriptInterface
+    fun getLatestCardResult(): String? {
+        val result = latestCardResult
+        latestCardResult = null // เคลียร์เพื่อป้องกันการอ่านซ้ำ
+        return result
+    }
+
+    /**
+     * ดึงสถานะปัจจุบันของเครื่องอ่านและการอ่านข้อมูล
+     */
+    @JavascriptInterface
+    fun getLatestStatus(): String {
+        return "$latestStatus|$latestMessage"
+    }
+
     /**
      * สั่งอ่านบัตรประชาชนจากฝั่ง JavaScript
      */
@@ -49,6 +82,7 @@ class WebAppInterface(private val activity: MainActivity) {
      */
     @JavascriptInterface
     fun getVersion(): String {
-        return "1.0.0"
+        return "1.1.0"
     }
 }
+
