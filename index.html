@@ -287,12 +287,13 @@
                 ✓ ชิปการ์ด
               </span>
             </div>
-            <div class="flex-1 min-w-0 space-y-1">
+            <div class="flex-1 min-w-0 space-y-0.5">
               <div class="text-[10px] text-blue-600 font-bold uppercase tracking-wider flex items-center gap-1">
-                <span>👤</span> <span>รูปถ่ายผู้มาติดต่อ</span>
+                <span>👤</span> <span>ผู้มาติดต่อ (Visitor)</span>
               </div>
-              <div id="extractedPhotoDisplayName" class="text-xs sm:text-sm font-black text-slate-800 truncate leading-tight">-</div>
-              <div id="extractedPhotoDisplayCid" class="text-[11px] text-slate-500 font-mono font-semibold">-</div>
+              <div id="extractedPhotoDisplayName" class="text-xs sm:text-sm font-black text-slate-900 truncate leading-tight">-</div>
+              <div id="extractedPhotoDisplayNameEn" class="text-[11px] text-slate-500 font-semibold truncate hidden"></div>
+              <div id="extractedPhotoDisplayCid" class="text-[11px] text-slate-400 font-mono font-semibold">-</div>
               <div class="pt-0.5">
                 <span class="text-[9px] text-emerald-800 bg-emerald-100/80 border border-emerald-300 font-semibold px-2 py-0.5 rounded-md inline-flex items-center gap-1">
                   <span>☁️</span> <span id="extractedPhotoDriveText">พร้อมบันทึกลง Google Drive</span>
@@ -310,19 +311,31 @@
             <input type="text" id="inIdCard" placeholder="x-xxxx-xxxxx-xx-x" class="w-full mt-0.5 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono text-sm font-semibold outline-none focus:border-blue-500 focus:bg-white transition">
           </div>
 
-          <!-- คำนำหน้า ชื่อ และ นามสกุล -->
+          <!-- คำนำหน้า ชื่อ และ นามสกุล (ภาษาไทยเป็นหลัก) -->
           <div class="grid grid-cols-12 gap-2">
-            <div class="col-span-4">
+            <div class="col-span-3">
               <label class="text-[11px] font-bold text-slate-600">คำนำหน้า</label>
-              <input type="text" id="inTitle" placeholder="นาย/นาง" class="w-full mt-0.5 px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-500 focus:bg-white transition">
+              <input type="text" id="inTitle" placeholder="นาย" class="w-full mt-0.5 px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-500 focus:bg-white transition">
             </div>
-            <div class="col-span-8">
-              <label class="text-[11px] font-bold text-slate-600">ชื่อ - นามสกุล</label>
+            <div class="col-span-9">
+              <div class="flex items-center justify-between">
+                <label class="text-[11px] font-bold text-slate-700">ชื่อ - นามสกุล (ภาษาไทยเป็นหลัก) *</label>
+                <span class="text-[9px] text-blue-700 font-bold bg-blue-100/80 px-1.5 py-0.2 rounded">ชื่อหลัก</span>
+              </div>
               <div class="flex gap-1.5 mt-0.5">
-                <input type="text" id="inFirstName" placeholder="ชื่อ" class="w-1/2 px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-500 focus:bg-white transition">
-                <input type="text" id="inLastName" placeholder="นามสกุล" class="w-1/2 px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-500 focus:bg-white transition">
+                <input type="text" id="inFirstName" placeholder="ชื่อ (ไทย)" class="w-1/2 px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium outline-none focus:border-blue-500 focus:bg-white transition">
+                <input type="text" id="inLastName" placeholder="นามสกุล (ไทย)" class="w-1/2 px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium outline-none focus:border-blue-500 focus:bg-white transition">
               </div>
             </div>
+          </div>
+
+          <!-- ชื่อภาษาอังกฤษ (ตัวเสริม) -->
+          <div>
+            <div class="flex items-center justify-between">
+              <label class="text-[11px] font-bold text-slate-500">ชื่อ - นามสกุล ภาษาอังกฤษ (Name in English)</label>
+              <span class="text-[9px] text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded">ตัวเสริม</span>
+            </div>
+            <input type="text" id="inNameEn" placeholder="เช่น Mr. Jirasak San-oun" class="w-full mt-0.5 px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 text-xs font-mono outline-none focus:border-blue-500 focus:bg-white transition">
           </div>
 
           <!-- ที่อยู่ตามบัตร -->
@@ -344,12 +357,18 @@
             </span>
           </div>
 
-          <!-- ฟิลด์สำคัญที่สุด: มาติดต่อใคร / บ้านเลขที่ (เด่นชัด) -->
-          <div class="p-3 bg-amber-50/80 border border-amber-300 rounded-2xl space-y-1">
-            <label class="text-xs font-extrabold text-amber-950 flex items-center gap-1">
-              <span>📍</span> <span>มาติดต่อใคร / บ้านเลขที่ / แผนก *</span>
-            </label>
-            <input type="text" id="inContactPerson" placeholder="เช่น บ้านเลขที่ 99/12 หรือ แผนก HR" class="w-full px-3 py-2 bg-white border border-amber-400 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-amber-400 transition placeholder:font-normal placeholder:text-slate-400">
+          <!-- ฟิลด์สำคัญที่สุด: จุดที่ต้องการติดต่อ / บุคคลที่เข้าพบ (Host / Destination) -->
+          <div class="p-3 bg-amber-50/80 border border-amber-300 rounded-2xl space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-black text-amber-950 flex items-center gap-1">
+                <span>🏢</span> <span>จุดที่ต้องการติดต่อ / บุคคลที่เข้าพบ (Host) *</span>
+              </label>
+              <span class="text-[9px] bg-amber-200 text-amber-900 font-bold px-1.5 py-0.5 rounded">ปลายทาง</span>
+            </div>
+            <input type="text" id="inContactPerson" placeholder="เช่น แผนกบัญชี, บ้านเลขที่ 99/12, คุณสมชาย (เจ้าหน้าที่)" class="w-full px-3 py-2.5 bg-white border-2 border-amber-400 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-amber-500 transition placeholder:font-normal placeholder:text-slate-400 text-xs sm:text-sm">
+            <p class="text-[10px] text-amber-800 leading-snug font-medium">
+              ⚠️ ระบุชื่อเจ้าบ้าน, บุคคลภายใน, หรือแผนกที่ต้องการไปพบ <b class="underline text-red-600 font-bold">(ห้ามใส่ชื่อผู้มาติดต่อ)</b>
+            </p>
           </div>
 
           <!-- ทะเบียนรถ -->
@@ -424,9 +443,26 @@
           </div>
 
           <div class="p-3.5 space-y-2.5 text-xs">
+            <!-- ข้อมูลผู้มาติดต่อ (รูปถ่าย + ชื่อไทยหลัก + อังกฤษเสริม) -->
+            <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
+              <div class="relative shrink-0">
+                <img id="outDisplayPhoto" src="" alt="รูปผู้มาติดต่อ" class="w-12 h-14 rounded-lg object-cover border border-slate-300 bg-white shadow-2xs hidden">
+                <div id="outDisplayPhotoPlaceholder" class="w-12 h-14 rounded-lg bg-slate-200 border border-slate-300 flex items-center justify-center text-xl text-slate-400">👤</div>
+              </div>
+              <div class="min-w-0 flex-1 space-y-0.5">
+                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">ผู้มาติดต่อ (Visitor)</div>
+                <div class="font-black text-slate-900 text-sm truncate" id="outDisplayVisitorName">-</div>
+                <div class="text-[11px] text-slate-500 font-medium truncate hidden" id="outDisplayVisitorNameEn"></div>
+              </div>
+            </div>
+
             <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-              <span class="text-slate-500 font-medium">จุดที่มาติดต่อ:</span>
-              <span class="font-bold text-slate-900 truncate max-w-[180px]" id="outDisplayContact">-</span>
+              <span class="text-slate-500 font-medium">จุดที่ต้องการติดต่อ (Host):</span>
+              <span class="font-bold text-amber-900 truncate max-w-[180px]" id="outDisplayContact">-</span>
+            </div>
+            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+              <span class="text-slate-500 font-medium">วัตถุประสงค์:</span>
+              <span class="font-semibold text-slate-800 truncate" id="outDisplayPurpose">-</span>
             </div>
             <div class="flex justify-between items-center border-b border-slate-100 pb-2">
               <span class="text-slate-500 font-medium">ทะเบียนรถ:</span>
@@ -437,8 +473,8 @@
               <span class="text-slate-700 font-semibold" id="outDisplayTime">-</span>
             </div>
 
-            <!-- สถานะลายเซ็นผู้รับการติดต่อ -->
-            <div id="outSignatureSection" class="hidden p-3 rounded-xl border transition"></div>
+            <!-- สถานะลายเซ็นผู้รับการติดต่อ (Host Signature required before checkout!) -->
+            <div id="outSignatureSection" class="p-3 rounded-xl border transition"></div>
 
             <div>
               <label class="text-[11px] font-bold text-slate-700">หมายเหตุตอนออก (ถ้ามี)</label>
@@ -449,11 +485,11 @@
           <!-- Action Buttons -->
           <div class="p-3 bg-slate-50 border-t border-slate-100 flex gap-2">
             <input type="hidden" id="outCurrentLogId">
-            <button type="button" onclick="cancelCheckOutView()" class="w-1/3 py-2.5 bg-white hover:bg-slate-100 text-slate-600 font-bold rounded-xl text-xs border border-slate-200 transition">
+            <button type="button" onclick="cancelCheckOutView()" class="w-1/3 py-2.5 bg-white hover:bg-slate-100 text-slate-600 font-bold rounded-xl text-xs border border-slate-200 transition cursor-pointer">
               ยกเลิก
             </button>
-            <button type="button" id="btnSubmitCheckOut" onclick="confirmCheckOut()" class="w-2/3 py-2.5 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl shadow-md shadow-red-600/20 text-xs active:scale-95 transition cursor-pointer">
-              ยืนยันคืนบัตรและออก
+            <button type="button" id="btnSubmitCheckOut" onclick="confirmCheckOut()" class="w-2/3 py-2.5 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl shadow-md shadow-red-600/20 text-xs active:scale-95 transition cursor-pointer flex items-center justify-center gap-1">
+              <span>✅</span> <span>ยืนยันคืนบัตรและออก</span>
             </button>
           </div>
         </div>
@@ -910,12 +946,24 @@
       if (!pendingSmartCardData) return;
       const data = pendingSmartCardData;
 
-      // 1. เติมคำนำหน้า ชื่อ และ นามสกุล
-      if (data.titleTh) document.getElementById('inTitle').value = data.titleTh;
-      if (data.firstNameTh) document.getElementById('inFirstName').value = data.firstNameTh;
-      if (data.lastNameTh) document.getElementById('inLastName').value = data.lastNameTh;
+      // 1. เติมคำนำหน้า ชื่อ และ นามสกุล (ภาษาไทยเป็นหลัก)
+      const titleTh = (data.titleTh || data.title || '').trim();
+      const firstNameTh = (data.firstNameTh || data.firstName || data.first_name || '').trim();
+      const lastNameTh = (data.lastNameTh || data.lastName || data.last_name || '').trim();
 
-      // 2. เติมเลขบัตร ปชช. 13 หลัก
+      if (titleTh) document.getElementById('inTitle').value = titleTh;
+      if (firstNameTh) document.getElementById('inFirstName').value = firstNameTh;
+      if (lastNameTh) document.getElementById('inLastName').value = lastNameTh;
+
+      // 2. เติมชื่อ-นามสกุล ภาษาอังกฤษ (ตัวเสริม)
+      const nameEnParts = [data.titleEn, data.firstNameEn, data.lastNameEn].filter(Boolean).map(s => String(s).trim());
+      const fullNameEn = nameEnParts.join(' ');
+      const nameEnInput = document.getElementById('inNameEn');
+      if (nameEnInput) {
+        nameEnInput.value = fullNameEn;
+      }
+
+      // 3. เติมเลขบัตร ปชช. 13 หลัก
       if (data.cid) {
         const rawId = String(data.cid).replace(/\D/g, '');
         const idInput = document.getElementById('inIdCard');
@@ -925,12 +973,12 @@
         }
       }
 
-      // 3. เติมที่อยู่
+      // 4. เติมที่อยู่
       if (data.address) {
         document.getElementById('inAddress').value = data.address;
       }
 
-      // 4. แสดงภาพถ่ายหน้าตรงจากชิปการ์ด
+      // 5. แสดงภาพถ่ายหน้าตรงจากชิปการ์ด
       if (data.photoBase64) {
         compressedCardPhotoBase64 = data.photoBase64.startsWith('data:image')
           ? data.photoBase64
@@ -941,14 +989,15 @@
         document.getElementById('cardPreviewContainer').classList.remove('hidden');
       }
 
-      // 5. แสดงภาพถ่ายและรายละเอียดใน Section 2 (จุดแสดงรูปภาพหลัก)
+      // 6. แสดงภาพถ่ายและรายละเอียดใน Section 2 (จุดแสดงรูปภาพหลัก)
       const photoCard = document.getElementById('extractedPhotoCard');
       const photoImg = document.getElementById('extractedPhotoDisplayImg');
       const photoName = document.getElementById('extractedPhotoDisplayName');
+      const photoNameEn = document.getElementById('extractedPhotoDisplayNameEn');
       const photoCid = document.getElementById('extractedPhotoDisplayCid');
       const photoBadge = document.getElementById('extractedPhotoBadge');
       if (photoCard && photoImg) {
-        const fullNameTh = [data.titleTh, data.firstNameTh, data.lastNameTh].filter(Boolean).join(' ') || '-';
+        const fullNameTh = [titleTh, firstNameTh, lastNameTh].filter(Boolean).join(' ') || '-';
         if (compressedCardPhotoBase64) {
           photoImg.src = compressedCardPhotoBase64;
           if (photoBadge) photoBadge.innerText = '✓ ชิปการ์ด';
@@ -957,6 +1006,10 @@
           if (photoBadge) photoBadge.innerText = 'ข้อมูลชิป';
         }
         if (photoName) photoName.innerText = fullNameTh;
+        if (photoNameEn) {
+          photoNameEn.innerText = fullNameEn ? `(${fullNameEn})` : '';
+          photoNameEn.classList.toggle('hidden', !fullNameEn);
+        }
         if (photoCid) photoCid.innerText = data.cid ? maskIdCard(data.cid) : '-';
         photoCard.classList.remove('hidden');
       }
@@ -966,7 +1019,7 @@
       Swal.fire({
         icon: 'success',
         title: 'นำข้อมูลลงฟอร์มเรียบร้อย!',
-        text: 'ระบุข้อมูลการเข้าพบเพื่อบันทึก Check-in ต่อได้เลยครับ',
+        text: 'ระบุจุดที่ต้องการติดต่อ (Host) เพื่อบันทึก Check-in ต่อได้เลยครับ',
         timer: 1600,
         showConfirmButton: false
       });
@@ -1158,7 +1211,29 @@
       }
 
       if (!contactPerson) {
-        Swal.fire('กรุณาระบุผู้ที่มาติดต่อ', 'โปรดระบุบ้านเลขที่ แผนก หรือชื่อผู้ที่มาติดต่อ', 'warning');
+        Swal.fire('กรุณาระบุจุดที่ต้องการติดต่อ', 'โปรดระบุชื่อเจ้าบ้าน, แผนก, หรือบุคคลที่ต้องการเข้าพบ (Host)', 'warning');
+        return;
+      }
+
+      const title = document.getElementById('inTitle').value.trim();
+      const firstName = document.getElementById('inFirstName').value.trim();
+      const lastName = document.getElementById('inLastName').value.trim();
+      const nameEn = (document.getElementById('inNameEn') ? document.getElementById('inNameEn').value.trim() : '');
+
+      const visitorFullNameTh = `${title} ${firstName} ${lastName}`.trim().toLowerCase();
+      const contactLower = contactPerson.toLowerCase();
+
+      // ตรวจสอบความถูกต้อง: ห้ามใส่ชื่อผู้มาติดต่อในช่องจุดที่ต้องการติดต่อ
+      if ((firstName && contactLower === firstName.toLowerCase()) ||
+          (lastName && contactLower === lastName.toLowerCase()) ||
+          (visitorFullNameTh && contactLower === visitorFullNameTh) ||
+          (nameEn && contactLower === nameEn.toLowerCase())) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'ข้อมูลจุดที่เข้าพบไม่ถูกต้อง',
+          html: 'ช่อง <b>"จุดที่ต้องการติดต่อ / บุคคลที่เข้าพบ (Host)"</b> ห้ามใส่ชื่อเดียวกับผู้มาติดต่อครับ<br><br><span class="text-xs text-slate-500">โปรดระบุชื่อเจ้าบ้าน, แผนก, หรือบุคคลภายในที่ผู้มาติดต่อต้องการไปพบ เช่น แผนกจัดซื้อ, บ้านเลขที่ 99/12, คุณสมชาย</span>',
+          confirmButtonText: 'แก้ไขข้อมูล'
+        });
         return;
       }
 
@@ -1167,15 +1242,18 @@
 
       const payload = {
         pass_code: passCode,
-        title: document.getElementById('inTitle').value.trim(),
-        first_name: document.getElementById('inFirstName').value.trim(),
-        last_name: document.getElementById('inLastName').value.trim(),
+        title: title,
+        first_name: firstName,
+        last_name: lastName,
+        name_en: nameEn,
         id_card_number: rawIdCard,
         address: document.getElementById('inAddress').value.trim(),
         contact_person: contactPerson,
+        department_or_house: contactPerson,
         license_plate: document.getElementById('inLicensePlate').value.trim(),
         purpose: document.getElementById('inPurpose').value,
-        photo_base64: compressedCardPhotoBase64
+        photo_base64: compressedCardPhotoBase64,
+        guard_in_notes: nameEn ? `[EN: ${nameEn}]` : ''
       };
 
       Swal.fire({
@@ -1302,6 +1380,8 @@
       document.getElementById('inTitle').value = '';
       document.getElementById('inFirstName').value = '';
       document.getElementById('inLastName').value = '';
+      const nameEnInput = document.getElementById('inNameEn');
+      if (nameEnInput) nameEnInput.value = '';
       const idInput = document.getElementById('inIdCard');
       if (idInput) {
         idInput.value = '';
@@ -1320,6 +1400,11 @@
       if (photoCard) photoCard.classList.add('hidden');
       const photoDisplayImg = document.getElementById('extractedPhotoDisplayImg');
       if (photoDisplayImg) photoDisplayImg.src = '';
+      const photoNameEn = document.getElementById('extractedPhotoDisplayNameEn');
+      if (photoNameEn) {
+        photoNameEn.innerText = '';
+        photoNameEn.classList.add('hidden');
+      }
     }
 
     // ==========================================
@@ -1365,6 +1450,37 @@
       document.getElementById('outDisplayPassCode').innerText = 'บัตร ' + v.pass_code;
       document.getElementById('outDisplayContact').innerText = v.department_or_house || v.contact_person || '-';
       document.getElementById('outDisplayPlate').innerText = v.license_plate || '-';
+      document.getElementById('outDisplayPurpose').innerText = v.purpose || '-';
+
+      // แสดงชื่อผู้มาติดต่อ (ไทยเป็นหลัก, อังกฤษเป็นเสริม)
+      const visitorNameTh = v.visitor_name || [v.title, v.first_name, v.last_name].filter(Boolean).join(' ') || 'ผู้มาติดต่อ';
+      let visitorNameEn = v.visitor_name_en || v.name_en || '';
+      if (!visitorNameEn && v.guard_in_notes) {
+        const m = v.guard_in_notes.match(/\[EN:\s*([^\]]+)\]/i);
+        if (m) visitorNameEn = m[1];
+      }
+
+      document.getElementById('outDisplayVisitorName').innerText = visitorNameTh;
+      const elEn = document.getElementById('outDisplayVisitorNameEn');
+      if (elEn) {
+        elEn.innerText = visitorNameEn ? `(${visitorNameEn})` : '';
+        elEn.classList.toggle('hidden', !visitorNameEn);
+      }
+
+      // แสดงภาพถ่ายผู้มาติดต่อ
+      const photoImg = document.getElementById('outDisplayPhoto');
+      const photoPlace = document.getElementById('outDisplayPhotoPlaceholder');
+      if (photoImg && photoPlace) {
+        if (v.photo_base64) {
+          photoImg.src = v.photo_base64;
+          photoImg.classList.remove('hidden');
+          photoPlace.classList.add('hidden');
+        } else {
+          photoImg.src = '';
+          photoImg.classList.add('hidden');
+          photoPlace.classList.remove('hidden');
+        }
+      }
 
       const inDate = new Date(v.check_in_at);
       document.getElementById('outDisplayTime').innerText = inDate.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.';
@@ -1374,79 +1490,79 @@
       const mins = diffMins % 60;
       document.getElementById('outDisplayDuration').innerText = hours > 0 ? ('อยู่มาแล้ว ' + hours + ' ชม. ' + mins + ' นาที') : ('อยู่มาแล้ว ' + mins + ' นาที');
 
-      // จัดการการแสดงผลกล่องลายเซ็น
+      // สถานะลายเซ็นผู้รับการติดต่อ (Host Signature required before checkout!)
       const sigSection = document.getElementById('outSignatureSection');
       const submitBtn = document.getElementById('btnSubmitCheckOut');
 
-      if (v.require_signature) {
-        sigSection.classList.remove('hidden');
-        if (v.signature_status === 'SIGNED') {
-          sigSection.className = 'p-3 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 space-y-1 shadow-xs';
-          
-          let signTimeStr = '';
-          if (v.signed_at) {
-            signTimeStr = ' (' + new Date(v.signed_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.)';
-          }
-          let driveLinkHtml = '';
-          if (v.signature_url) {
-            driveLinkHtml = 
-              '<div class="pt-0.5">' +
-                '<a href="' + escapeHtml(v.signature_url) + '" target="_blank" class="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 underline font-bold">' +
-                  '<span>✍️</span> <span>เปิดดูภาพลายเซ็นใน Drive</span>' +
-                '</a>' +
-              '</div>';
-          }
+      const isSigned = (v.signature_status === 'SIGNED');
 
-          sigSection.innerHTML = 
-            '<div class="flex items-center justify-between">' +
-              '<span class="font-extrabold flex items-center gap-1 text-emerald-800 text-xs">' +
-                '<span>✅</span> <span>เซ็นชื่อรับรองแล้ว</span>' +
-              '</span>' +
-              '<span class="text-[9px] bg-emerald-200 text-emerald-900 font-bold px-2 py-0.5 rounded-full">APPROVED</span>' +
-            '</div>' +
-            '<div class="text-[11px] text-emerald-700">' +
-              'ผู้รับรอง: <b>' + escapeHtml(v.signed_by || '-') + '</b>' + signTimeStr +
-            '</div>' +
-            driveLinkHtml;
-
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.className = 'w-2/3 py-2.5 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl shadow-md shadow-red-600/20 text-xs active:scale-95 transition cursor-pointer';
-          }
-        } else {
-          // ยังไม่ได้เซ็น แต่ระบบเปิดบังคับไว้
-          sigSection.className = 'p-3 rounded-xl border border-amber-300 bg-amber-50 text-amber-950 space-y-1.5 shadow-xs';
-          sigSection.innerHTML = 
-            '<div class="flex items-center justify-between">' +
-              '<span class="font-extrabold flex items-center gap-1 text-red-600 text-xs">' +
-                '<span>⚠️</span> <span>ยังไม่ได้รับการเซ็นรับรอง!</span>' +
-              '</span>' +
-              '<span class="text-[9px] bg-red-100 text-red-700 border border-red-200 font-bold px-2 py-0.5 rounded-full">REQUIRED</span>' +
-            '</div>' +
-            '<p class="text-[11px] text-slate-600 leading-snug">' +
-              'ผู้รับการติดต่อต้องสแกน QR บนบัตรเพื่อเซ็นชื่อในมือถือก่อน' +
-            '</p>' +
-            '<button type="button" id="btnCopyPendingHostSign" class="w-full py-2 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 shadow-xs cursor-pointer">' +
-              '<span>🔗</span> <span>คัดลอกลิงก์เซ็นชื่อ (ส่ง LINE)</span>' +
-            '</button>';
-
-          const copyBtn = document.getElementById('btnCopyPendingHostSign');
-          if (copyBtn) {
-            copyBtn.onclick = function() {
-              copyHostSignUrl(v.pass_code);
-            };
-          }
-
-          if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.className = 'w-2/3 py-2.5 bg-slate-300 text-slate-500 font-extrabold rounded-xl text-xs cursor-not-allowed';
-          }
+      if (isSigned) {
+        sigSection.className = 'p-3 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-950 space-y-1 shadow-xs';
+        
+        let signTimeStr = '';
+        if (v.signed_at) {
+          signTimeStr = ' (' + new Date(v.signed_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.)';
         }
-      } else {
-        sigSection.classList.add('hidden');
+        let driveLinkHtml = '';
+        if (v.signature_url) {
+          driveLinkHtml = 
+            '<div class="pt-0.5">' +
+              '<a href="' + escapeHtml(v.signature_url) + '" target="_blank" class="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 underline font-bold">' +
+                '<span>✍️</span> <span>เปิดดูภาพลายเซ็นใน Drive</span>' +
+              '</a>' +
+            '</div>';
+        }
+
+        sigSection.innerHTML = 
+          '<div class="flex items-center justify-between">' +
+            '<span class="font-extrabold flex items-center gap-1 text-emerald-800 text-xs">' +
+              '<span>🟢</span> <span>ผู้รับการติดต่อลงชื่อรับรองแล้ว (อนุญาตให้ออกได้)</span>' +
+            '</span>' +
+            '<span class="text-[9px] bg-emerald-200 text-emerald-900 font-bold px-2 py-0.5 rounded-full">APPROVED</span>' +
+          '</div>' +
+          '<div class="text-[11px] text-emerald-800">' +
+            'ผู้รับรอง: <b>' + escapeHtml(v.signed_by || v.department_or_house || 'ผู้รับการติดต่อ') + '</b>' + signTimeStr +
+          '</div>' +
+          driveLinkHtml;
+
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.className = 'w-2/3 py-2.5 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl shadow-md shadow-red-600/20 text-xs active:scale-95 transition cursor-pointer';
+          submitBtn.className = 'w-2/3 py-2.5 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl shadow-md shadow-red-600/20 text-xs active:scale-95 transition cursor-pointer flex items-center justify-center gap-1';
+          submitBtn.innerHTML = '<span>✅</span> <span>ยืนยันคืนบัตรและออก</span>';
+        }
+      } else {
+        // ยังไม่ได้รับการเซ็นรับรอง -> บล็อกปุ่มออกเด็ดขาด
+        sigSection.className = 'p-3 rounded-xl border border-rose-300 bg-rose-50 text-rose-950 space-y-1.5 shadow-xs';
+        sigSection.innerHTML = 
+          '<div class="flex items-center justify-between">' +
+            '<span class="font-extrabold flex items-center gap-1 text-rose-700 text-xs">' +
+              '<span>⛔</span> <span>ยังไม่อนุญาตให้ออก! รอลายเซ็นผู้รับการติดต่อ</span>' +
+            '</span>' +
+            '<span class="text-[9px] bg-rose-200 text-rose-900 font-bold px-2 py-0.5 rounded-full">WAITING</span>' +
+          '</div>' +
+          '<p class="text-[11px] text-slate-600 leading-snug">' +
+            'ผู้รับการติดต่อยังไม่ได้ลงชื่อรับรองการเข้าพบ โปรดให้ผู้รับการติดต่อสแกน QR Code บนบัตร หรือแตะปุ่มด้านล่างเพื่อส่งลิงก์เซ็นชื่อก่อนคืนบัตร' +
+          '</p>' +
+          '<div class="grid grid-cols-2 gap-2 pt-0.5">' +
+            '<button type="button" id="btnCopyPendingHostSign" class="py-2 px-2 bg-white hover:bg-rose-100 text-rose-900 border border-rose-300 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 shadow-xs cursor-pointer">' +
+              '<span>🔗</span> <span>คัดลอกลิงก์ (LINE)</span>' +
+            '</button>' +
+            '<a href="' + getCanonicalSignUrl(v.pass_code) + '" target="_blank" class="py-2 px-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 shadow-xs">' +
+              '<span>✍️</span> <span>เปิดหน้าเซ็นชื่อ</span>' +
+            '</a>' +
+          '</div>';
+
+        const copyBtn = document.getElementById('btnCopyPendingHostSign');
+        if (copyBtn) {
+          copyBtn.onclick = function() {
+            copyHostSignUrl(v.pass_code);
+          };
+        }
+
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.className = 'w-2/3 py-2.5 bg-slate-200 border border-slate-300 text-slate-400 font-extrabold rounded-xl text-xs cursor-not-allowed flex items-center justify-center gap-1';
+          submitBtn.innerHTML = '<span>⛔</span> <span>ไม่อนุญาตให้ออก (รอลายเซ็น)</span>';
         }
       }
 
@@ -1461,6 +1577,18 @@
 
     function confirmCheckOut() {
       if (!currentCheckOutVisitorData) return;
+
+      // กฎเหล็ก: รปภ. จะกดให้ออกได้ ผู้รับการติดต่อต้องเซ็นรับรองแล้วเท่านั้น
+      if (currentCheckOutVisitorData.signature_status !== 'SIGNED') {
+        Swal.fire({
+          icon: 'warning',
+          title: 'ยังไม่อนุญาตให้ออก!',
+          html: 'ผู้รับการติดต่อยังไม่ได้ลงชื่อรับรองการเข้าพบ<br><br><span class="text-xs text-slate-500">กรุณาแจ้งให้ผู้รับการติดต่อสแกน QR Code บนบัตร <b>' + escapeHtml(currentCheckOutVisitorData.pass_code) + '</b> หรือส่งลิงก์เซ็นชื่อทาง LINE เพื่อลงชื่อก่อนคืนบัตรครับ</span>',
+          confirmButtonText: 'รับทราบ',
+          confirmButtonColor: '#e11d48'
+        });
+        return;
+      }
 
       const logId = currentCheckOutVisitorData.id;
       const passCode = currentCheckOutVisitorData.pass_code;
@@ -1509,7 +1637,7 @@
     }
 
     // ==========================================
-    // รายการบัตรที่ยังค้างอยู่ (เฉพาะข้อมูลบัตร)
+    // รายการบัตรที่ยังค้างอยู่ (สำหรับ รปภ.)
     // ==========================================
     function loadActivePassesForGuard() {
       const container = document.getElementById('activePassesList');
@@ -1536,22 +1664,34 @@
               plateStr = 'ทะเบียน: <b>' + escapeHtml(v.license_plate) + '</b> | ';
             }
 
+            const visitorNameTh = v.visitor_name || [v.title, v.first_name, v.last_name].filter(Boolean).join(' ') || 'ผู้มาติดต่อ';
+            const isSigned = (v.signature_status === 'SIGNED');
+            const sigBadgeHtml = isSigned
+              ? '<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5">✓ เซ็นแล้ว</span>'
+              : '<span class="bg-rose-100 text-rose-800 border border-rose-300 text-[10px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5">⏳ รอลายเซ็น</span>';
+
             const itemDiv = document.createElement('div');
             itemDiv.className = 'bg-white rounded-2xl border border-slate-200 p-3 shadow-xs flex items-center justify-between gap-2.5 hover:border-blue-300 transition';
             itemDiv.innerHTML = 
-              '<div class="min-w-0 flex-1">' +
+              '<div class="min-w-0 flex-1 space-y-1">' +
                 '<div class="flex items-center gap-1.5 flex-wrap">' +
                   '<span class="bg-blue-50 text-blue-800 border border-blue-200 text-xs font-bold px-2 py-0.5 rounded-lg font-mono">' + escapeHtml(v.pass_code) + '</span>' +
-                  '<span class="font-bold text-slate-800 text-xs truncate">ติดต่อ: <b>' + escapeHtml(v.department_or_house || v.contact_person || '-') + '</b></span>' +
+                  '<span class="font-extrabold text-slate-900 text-xs truncate">' + escapeHtml(visitorNameTh) + '</span>' +
+                  sigBadgeHtml +
                 '</div>' +
-                '<div class="text-[11px] text-slate-500 mt-1 truncate">' +
+                '<div class="text-[11px] text-amber-900 font-medium truncate">' +
+                  'จุดติดต่อ: <b>' + escapeHtml(v.department_or_house || v.contact_person || '-') + '</b>' +
+                '</div>' +
+                '<div class="text-[10px] text-slate-500 truncate">' +
                   plateStr + 'เข้าเมื่อ ' + timeStr + ' น. (<span class="text-emerald-600 font-bold">' + durationStr + '</span>)' +
                 '</div>' +
               '</div>';
 
             const outBtn = document.createElement('button');
             outBtn.type = 'button';
-            outBtn.className = 'px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-xs font-bold transition active:scale-95 shadow-xs shrink-0 cursor-pointer';
+            outBtn.className = isSigned
+              ? 'px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition active:scale-95 shadow-xs shrink-0 cursor-pointer'
+              : 'px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 rounded-xl text-xs font-bold transition active:scale-95 shadow-xs shrink-0 cursor-pointer';
             outBtn.innerText = 'ออก';
             outBtn.onclick = function() {
               quickCheckOut(v.pass_code);
