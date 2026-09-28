@@ -1191,17 +1191,24 @@
           if (res && res.success) {
             let sigNoticeHtml = '';
             if (res.require_signature) {
+              const signUrl = getCanonicalSignUrl(passCode.toUpperCase());
               sigNoticeHtml = 
-                '<div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 text-left space-y-1 mt-2.5">' +
-                  '<div class="font-bold flex items-center gap-1 text-amber-800">' +
-                    '<span>✍️</span> <span>กำหนดให้ผู้รับการติดต่อเซ็นชื่อ</span>' +
+                '<div class="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 text-left space-y-2 mt-2.5">' +
+                  '<div class="font-bold flex items-center justify-between text-amber-900">' +
+                    '<span class="flex items-center gap-1.5 font-bold"><span>✍️</span> <span>กำหนดให้ผู้รับการติดต่อเซ็นชื่อ</span></span>' +
+                    '<span class="bg-amber-200/70 text-amber-900 px-2 py-0.5 rounded-full text-[10px] font-bold">รอลายเซ็น</span>' +
                   '</div>' +
                   '<p class="text-[11px] text-slate-600 leading-snug">' +
-                    'ผู้รับการติดต่อสามารถใช้กล้องมือถือสแกน QR บนบัตร <b>' + escapeHtml(passCode.toUpperCase()) + '</b> เพื่อเซ็นชื่อได้ทันที' +
+                    'ผู้รับการติดต่อสามารถใช้กล้องมือถือสแกน QR Code บนบัตร <b>' + escapeHtml(passCode.toUpperCase()) + '</b> เพื่อเซ็นชื่อได้ทันที หรือส่งลิงก์ผ่าน LINE ได้ครับ' +
                   '</p>' +
-                  '<button type="button" id="btnCopyCheckInSign" class="w-full mt-1 py-2 bg-white hover:bg-amber-100 border border-amber-300 text-amber-900 font-bold rounded-lg text-xs flex items-center justify-center gap-1 transition shadow-xs cursor-pointer">' +
-                    '<span>🔗</span> <span>คัดลอกลิงก์เซ็นชื่อ (ส่ง LINE)</span>' +
-                  '</button>' +
+                  '<div class="grid grid-cols-2 gap-2 pt-1">' +
+                    '<button type="button" id="btnCopyCheckInSign" class="py-2 px-2 bg-white hover:bg-amber-100 border border-amber-300 text-amber-900 font-bold rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-xs cursor-pointer">' +
+                      '<span>🔗</span> <span>คัดลอกลิงก์</span>' +
+                    '</button>' +
+                    '<a href="' + signUrl + '" target="_blank" class="py-2 px-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-xs">' +
+                      '<span>✍️</span> <span>เปิดหน้าเซ็นชื่อ</span>' +
+                    '</a>' +
+                  '</div>' +
                 '</div>';
             }
 
@@ -1236,73 +1243,57 @@
         .saveCheckIn(payload);
     }
 
-    function getCanonicalWebAppUrl() {
+    function getCanonicalSignUrl(passCode) {
+      const code = (passCode || '').trim().toUpperCase();
+
       // 1. ดึงจากค่าที่ GAS backend ฝังมาให้ใน window
       if (typeof window.VMS_CANONICAL_WEBAPP_URL === 'string' && window.VMS_CANONICAL_WEBAPP_URL.includes('script.google.com')) {
-        return window.VMS_CANONICAL_WEBAPP_URL.split('?')[0];
+        return `${window.VMS_CANONICAL_WEBAPP_URL.split('?')[0]}?pass=${encodeURIComponent(code)}`;
       }
+
       // 2. ดึงจาก localStorage
       const saved = localStorage.getItem('VMS_BASE_WEBAPP_URL');
-      if (saved && saved.includes('script.google.com')) {
-        return saved.split('?')[0];
+      if (saved && saved.trim()) {
+        const val = saved.trim().split('?')[0];
+        if (val.includes('script.google.com')) {
+          return `${val}?pass=${encodeURIComponent(code)}`;
+        }
       }
-      // 3. ตรวจสอบ window.location ถ้าไม่ใช่ sandbox
-      const current = window.location.href.split('?')[0];
-      if (current.includes('script.google.com')) {
-        return current;
+
+      // 3. ตรวจสอบจาก URL ปัจจุบัน (GitHub Pages หรือ Web Server ทั่วไป)
+      const loc = window.location;
+      if (loc && loc.origin && loc.origin !== 'null' && loc.origin !== 'file://') {
+        const pathname = loc.pathname || '';
+        let dir = pathname.substring(0, pathname.lastIndexOf('/'));
+        if (dir && !dir.endsWith('/')) dir += '/';
+        if (!dir) dir = '/';
+        return `${loc.origin}${dir}sign.html?pass=${encodeURIComponent(code)}`;
       }
-      return '';
+
+      return `https://jirasaksa-max.github.io/vms-scanner/sign.html?pass=${encodeURIComponent(code)}`;
+    }
+
+    function getCanonicalWebAppUrl() {
+      return getCanonicalSignUrl('').split('?')[0].replace('sign.html', 'index.html');
     }
 
     function copyHostSignUrl(passCode) {
-      const baseUrl = getCanonicalWebAppUrl();
-      if (!baseUrl) {
-        if (typeof google !== 'undefined' && google.script && google.script.run) {
-          google.script.run.withSuccessHandler(function(url) {
-            if (url && url.includes('script.google.com')) {
-              window.VMS_CANONICAL_WEBAPP_URL = url;
-              localStorage.setItem('VMS_BASE_WEBAPP_URL', url);
-              finishCopy(url);
-            } else {
-              finishCopy(window.location.href.split('?')[0]);
-            }
-          }).getScriptWebAppUrl();
-          return;
-        }
-      }
-      finishCopy(baseUrl);
-
-      function finishCopy(base) {
-        let cleanBase = base || '';
-        if (!cleanBase || cleanBase.includes('googleusercontent.com')) {
+      const signUrl = getCanonicalSignUrl(passCode);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(signUrl).then(function() {
           Swal.fire({
-            icon: 'warning',
-            title: 'ตรวจพบ URL ชั่วคราว (Sandbox)',
-            html: '<div class="text-xs text-left space-y-2 leading-relaxed">' +
-                  '<p>ระบบตรวจพบว่าหน้าจอทำงานใน Sandbox ภายใน (userCodeAppPanel) ซึ่งบุคคลภายนอกไม่สามารถเปิดได้</p>' +
-                  '<p>กรุณาระบุ URL ของเว็บแอปจริง (เช่น https://script.google.com/macros/s/.../exec) ในหน้าตั้งค่าแดชบอร์ด Admin หรือติดต่อผู้ดูแลระบบ</p>' +
-                  '</div>'
+            toast: true,
+            position: 'top',
+            icon: 'success',
+            title: 'คัดลอกลิงก์เซ็นชื่อบัตร ' + passCode + ' แล้ว',
+            showConfirmButton: false,
+            timer: 2000
           });
-          return;
-        }
-
-        const signUrl = cleanBase + '?pass=' + encodeURIComponent(passCode);
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(signUrl).then(function() {
-            Swal.fire({
-              toast: true,
-              position: 'top',
-              icon: 'success',
-              title: 'คัดลอกลิงก์เซ็นชื่อบัตร ' + passCode + ' แล้ว',
-              showConfirmButton: false,
-              timer: 2000
-            });
-          }).catch(function() {
-            prompt('คัดลอกลิงก์ด้านล่างเพื่อส่งให้ผู้รับการติดต่อ:', signUrl);
-          });
-        } else {
+        }).catch(function() {
           prompt('คัดลอกลิงก์ด้านล่างเพื่อส่งให้ผู้รับการติดต่อ:', signUrl);
-        }
+        });
+      } else {
+        prompt('คัดลอกลิงก์ด้านล่างเพื่อส่งให้ผู้รับการติดต่อ:', signUrl);
       }
     }
 
@@ -1673,11 +1664,21 @@
       }
       if (!pass) {
         const params = new URLSearchParams(window.location.search);
-        pass = params.get('pass') || params.get('scanned') || '';
+        pass = params.get('pass') || params.get('scanned') || params.get('code') || '';
         if (!tab) tab = params.get('tab') || '';
       }
       if (pass) {
         pass = pass.trim().toUpperCase();
+
+        // หากผู้รับการติดต่อใช้กล้องมือถือสแกน QR Code บนบัตรที่ลิงก์มายังหน้าแรก
+        // (และไม่ใช่การทำงานในแอป รปภ. / Android Bridge / ไม่ได้ระบุ tab Check-out)
+        // ให้ส่งต่อไปยังหน้าเซ็นชื่อดิจิทัล (sign.html) ทันที
+        const isGuardMode = (tab === 'tabCheckOut' || tab === 'tabCheckIn' || window.AndroidSmartCard);
+        if (!isGuardMode) {
+          window.location.replace('sign.html?pass=' + encodeURIComponent(pass));
+          return;
+        }
+
         if (tab === 'tabCheckOut') {
           switchTab('tabCheckOut');
           document.getElementById('outPassCode').value = pass;
