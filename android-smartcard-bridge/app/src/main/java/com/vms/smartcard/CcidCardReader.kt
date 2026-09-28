@@ -258,27 +258,43 @@ class CcidCardReader(
 
     /**
      * ส่งคำสั่ง APDU และจัดการเคส ISO-7816 SW1=0x61 (Get Response) และ 0x6C (Re-issue) อัตโนมัติ
+     * รองรับบัตร ปชช. ทั้ง Type 01 (corrupted/old) และ Type 02 (standard)
      */
     fun sendApdu(apdu: ByteArray): ByteArray? {
         var res = xfrBlock(apdu) ?: return null
 
+        // 1. จัดการกรณี 0x6C (Wrong length -> ให้ส่งซ้ำด้วย Le = sw2 ทันที)
         if (res.size >= 2) {
             val sw1 = res[res.size - 2].toInt() and 0xFF
             val sw2 = res[res.size - 1].toInt() and 0xFF
-            if (sw1 == 0x61) {
-                // มีข้อมูลรอให้ดึงขนาด sw2 bytes
-                val getResponseCmd = byteArrayOf(0x00, 0xC0.toByte(), 0x00, 0x00, sw2.toByte())
-                val getResp = xfrBlock(getResponseCmd)
-                if (getResp != null && getResp.size >= 2) {
-                    res = getResp
-                }
-            } else if (sw1 == 0x6C) {
-                // ความยาวข้อมูลไม่ตรง ให้ส่งซ้ำด้วย Le = sw2
+            if (sw1 == 0x6C) {
                 val correctedApdu = apdu.copyOf()
                 correctedApdu[correctedApdu.size - 1] = sw2.toByte()
                 val retryResp = xfrBlock(correctedApdu)
                 if (retryResp != null && retryResp.size >= 2) {
                     res = retryResp
+                }
+            }
+        }
+
+        // 2. จัดการกรณี 0x61 (Response data available -> ส่งคำสั่ง GET RESPONSE เพื่อดึงไบต์ข้อมูลจริง)
+        if (res.size >= 2) {
+            val sw1 = res[res.size - 2].toInt() and 0xFF
+            val sw2 = res[res.size - 1].toInt() and 0xFF
+            if (sw1 == 0x61) {
+                // Type 02 มาตรฐาน: 0x00, 0xC0, 0x00, 0x00, sw2
+                val getRespCmd0 = byteArrayOf(0x00, 0xC0.toByte(), 0x00, 0x00, sw2.toByte())
+                var getResp = xfrBlock(getRespCmd0)
+                if (getResp == null || getResp.size < 2 || (getResp[getResp.size - 2].toInt() and 0xFF) != 0x90) {
+                    // Type 01 ทางเลือก: 0x00, 0xC0, 0x00, 0x01, sw2
+                    val getRespCmd1 = byteArrayOf(0x00, 0xC0.toByte(), 0x00, 0x01, sw2.toByte())
+                    val altResp = xfrBlock(getRespCmd1)
+                    if (altResp != null && altResp.size >= 2) {
+                        getResp = altResp
+                    }
+                }
+                if (getResp != null && getResp.size >= 2) {
+                    res = getResp
                 }
             }
         }
