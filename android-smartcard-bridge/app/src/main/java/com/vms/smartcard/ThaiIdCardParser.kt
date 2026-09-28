@@ -173,21 +173,29 @@ class ThaiIdCardParser(private val reader: CcidCardReader) {
      */
     private fun readPhoto(onProgress: ((String) -> Unit)? = null): String {
         val bos = ByteArrayOutputStream()
-        val blockSize = 0xFE // 254 bytes
 
         for (i in 1..20) {
             val p1 = i
             val p2 = (0x7C - i) and 0xFF
-            val chunk = readBinary(p1, p2, blockSize)
-            if (chunk == null || chunk.isEmpty()) break
-            bos.write(chunk)
+            var chunk = readBinary(p1, p2, 0xFF)
+            if (chunk == null || chunk.isEmpty()) {
+                chunk = readBinary(p1, p2, 0xFE)
+            }
+            if (chunk != null && chunk.isNotEmpty()) {
+                bos.write(chunk)
+                Log.d(TAG, "Photo chunk $i: ${chunk.size} bytes read")
+            }
             if (i % 4 == 0 || i == 20) {
                 onProgress?.invoke("⚡ (4/4) กำลังอ่านรูปถ่ายหน้าตรง... (${i * 5}%)")
             }
         }
 
         val allBytes = bos.toByteArray()
-        if (allBytes.isEmpty()) return ""
+        if (allBytes.isEmpty()) {
+            Log.w(TAG, "readPhoto: allBytes is empty")
+            return ""
+        }
+        Log.d(TAG, "readPhoto: total ${allBytes.size} bytes gathered")
 
         var startIndex = -1
         var endIndex = -1
@@ -210,6 +218,8 @@ class ThaiIdCardParser(private val reader: CcidCardReader) {
 
         val validJpegBytes = if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
             allBytes.copyOfRange(startIndex, endIndex)
+        } else if (startIndex != -1) {
+            allBytes.copyOfRange(startIndex, allBytes.size)
         } else {
             allBytes
         }
