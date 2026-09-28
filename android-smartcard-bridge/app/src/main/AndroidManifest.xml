@@ -25,6 +25,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- เมื่อเสียบเครื่องอ่าน USB Smart Card Type-C ให้เปิดแอปหรือแจ้งเตือนแอปนี้ -->
             <intent-filter>
                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
             </intent-filter>
