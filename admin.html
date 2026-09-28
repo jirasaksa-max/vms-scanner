@@ -1406,20 +1406,40 @@
             if (!isAvail) {
               const stayTimeStr = p.check_in_at ? formatDuration(p.check_in_at) : '-';
               const inTimeStr = p.check_in_at ? (new Date(p.check_in_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.') : '-';
+              const visitorName = p.visitor_name || 'ผู้มาติดต่อ';
               inUseContentHtml = `
-                <div class="my-2 p-2.5 bg-amber-50/90 rounded-2xl border border-amber-200/80 text-left space-y-1">
-                  <div class="font-extrabold text-slate-900 text-xs truncate" title="${p.visitor_name || 'ผู้มาติดต่อ'}">
-                    👤 ${p.visitor_name || 'ผู้มาติดต่อ'}
+                <div class="my-2 p-2.5 bg-amber-50/90 rounded-2xl border border-amber-200/80 text-left space-y-1.5">
+                  <div class="flex items-center gap-2">
+                    ${p.photo_base64 ? `
+                      <img src="${p.photo_base64}" alt="ภาพถ่าย" class="w-8 h-8 rounded-lg object-cover border border-amber-200 flex-shrink-0 cursor-pointer shadow-2xs hover:scale-105 transition" onclick="openPhotoModal('${p.photo_base64}', '${visitorName}')" title="คลิกดูภาพขยาย">
+                    ` : `
+                      <div class="w-8 h-8 rounded-lg bg-amber-100/90 border border-amber-200 flex items-center justify-center text-amber-800 text-xs flex-shrink-0">
+                        👤
+                      </div>
+                    `}
+                    <div class="min-w-0 flex-1">
+                      <div class="font-extrabold text-slate-900 text-xs truncate" title="${visitorName}">
+                        ${visitorName}
+                      </div>
+                      <div class="text-[10px] text-amber-800/80 truncate font-medium">
+                        ${p.purpose || 'ติดต่อทั่วไป'}
+                      </div>
+                    </div>
                   </div>
-                  <div class="text-[11px] text-amber-900 font-semibold truncate" title="${p.department_or_house || '-'}">
-                    📍 ${p.department_or_house || '-'}
+
+                  <div class="text-[11px] text-amber-900 font-semibold truncate flex items-center gap-1.5" title="${p.department_or_house || '-'}">
+                    <span>📍</span>
+                    <span class="truncate">${p.department_or_house || '-'}</span>
                   </div>
-                  <div class="text-[10px] text-slate-600 font-mono truncate">
-                    🚗 ${p.license_plate || '-'}
+
+                  <div class="text-[10px] text-slate-600 font-mono truncate flex items-center gap-1.5">
+                    <span>🚗</span>
+                    <span class="font-bold">${p.license_plate || '-'}</span>
                   </div>
-                  <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-amber-200/60">
-                    <span>เข้า: ${inTimeStr}</span>
-                    <span class="font-bold text-amber-800">⏱️ ${stayTimeStr}</span>
+
+                  <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1.5 border-t border-amber-200/60">
+                    <span>เข้า: <b>${inTimeStr}</b></span>
+                    <span class="font-bold text-amber-800 bg-amber-100/80 px-1.5 py-0.5 rounded-md">⏱️ ${stayTimeStr}</span>
                   </div>
                 </div>
               `;
@@ -1692,27 +1712,53 @@
         .getAdminPassesList();
     }
 
-    function getCanonicalWebAppUrl() {
+    function getCanonicalSignUrl(passCode) {
+      const code = (passCode || '').trim().toUpperCase();
+
       // 1. ดึงจากช่องกรอกในแท็บตั้งค่า (ถ้ามี)
       const inputEl = document.getElementById('adminWebAppUrl');
-      if (inputEl && inputEl.value && inputEl.value.includes('script.google.com')) {
-        return inputEl.value.trim().split('?')[0];
+      if (inputEl && inputEl.value && inputEl.value.trim()) {
+        const customUrl = inputEl.value.trim().split('?')[0];
+        if (customUrl.includes('script.google.com')) {
+          return `${customUrl}?pass=${encodeURIComponent(code)}`;
+        }
+        if (customUrl.endsWith('.html')) {
+          const base = customUrl.substring(0, customUrl.lastIndexOf('/'));
+          return `${base}/sign.html?pass=${encodeURIComponent(code)}`;
+        }
+        return `${customUrl.replace(/\/+$/, '')}/sign.html?pass=${encodeURIComponent(code)}`;
       }
+
       // 2. ดึงจากค่าที่ GAS backend ฝังมาให้ใน window
       if (typeof window.VMS_CANONICAL_WEBAPP_URL === 'string' && window.VMS_CANONICAL_WEBAPP_URL.includes('script.google.com')) {
-        return window.VMS_CANONICAL_WEBAPP_URL.split('?')[0];
+        return `${window.VMS_CANONICAL_WEBAPP_URL.split('?')[0]}?pass=${encodeURIComponent(code)}`;
       }
+
       // 3. ดึงจาก localStorage
       const saved = localStorage.getItem('VMS_BASE_WEBAPP_URL');
-      if (saved && saved.includes('script.google.com')) {
-        return saved.split('?')[0];
+      if (saved && saved.trim()) {
+        const clean = saved.trim().split('?')[0];
+        if (clean.includes('script.google.com')) {
+          return `${clean}?pass=${encodeURIComponent(code)}`;
+        }
       }
-      // 4. ตรวจสอบ window.location ถ้าไม่ใช่ sandbox
-      const current = window.location.href.split('?')[0];
-      if (current.includes('script.google.com')) {
-        return current;
+
+      // 4. ตรวจสอบจาก URL ปัจจุบัน (GitHub Pages หรือ Web Server ทั่วไป)
+      const loc = window.location;
+      if (loc && loc.origin && loc.origin !== 'null' && loc.origin !== 'file://') {
+        const pathname = loc.pathname || '';
+        let dir = pathname.substring(0, pathname.lastIndexOf('/'));
+        if (dir && !dir.endsWith('/')) dir += '/';
+        if (!dir) dir = '/';
+        return `${loc.origin}${dir}sign.html?pass=${encodeURIComponent(code)}`;
       }
-      return '';
+
+      // 5. Fallback สำหรับ GitHub Pages ของโปรเจกต์
+      return `https://jirasaksa-max.github.io/vms-scanner/sign.html?pass=${encodeURIComponent(code)}`;
+    }
+
+    function getCanonicalWebAppUrl() {
+      return getCanonicalSignUrl('').split('?')[0].replace('sign.html', 'index.html');
     }
 
     function renderQRCards(passes) {
@@ -1774,14 +1820,13 @@
         grid.appendChild(card);
       });
 
-      // Generate QR codes for all passes using QRCodejs (Encode WebApp URL for host scanning)
+      // Generate QR codes for all passes using QRCodejs (Encode direct sign.html URL for host scanning)
       setTimeout(() => {
-        const webAppUrl = getCanonicalWebAppUrl();
         passes.forEach(p => {
           const box = document.getElementById(`qr-box-${p.pass_code}`);
           if (box) {
             box.innerHTML = '';
-            const signUrl = `${webAppUrl}?pass=${encodeURIComponent(p.pass_code)}`;
+            const signUrl = getCanonicalSignUrl(p.pass_code);
             new QRCode(box, {
               text: signUrl,
               width: 130,
@@ -1915,8 +1960,7 @@
       if (source) {
         executeDownload(source);
       } else {
-        const webAppUrl = getCanonicalWebAppUrl();
-        const signUrl = `${webAppUrl}?pass=${encodeURIComponent(code)}`;
+        const signUrl = getCanonicalSignUrl(code);
         const tempDiv = document.createElement('div');
         tempDiv.style.display = 'none';
         document.body.appendChild(tempDiv);
@@ -1936,8 +1980,7 @@
 
     // คัดลอก Direct URL ของรูปภาพ QR Code (ที่สแกนแล้วเปิดหน้าเซ็นชื่อ)
     function copyQrImageUrl(code) {
-      const webAppUrl = getCanonicalWebAppUrl();
-      const signUrl = `${webAppUrl}?pass=${encodeURIComponent(code)}`;
+      const signUrl = getCanonicalSignUrl(code);
       const url = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(signUrl)}`;
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(() => {
@@ -2011,8 +2054,7 @@
     }
 
     function showCustomQrPopup(code) {
-      const webAppUrl = getCanonicalWebAppUrl();
-      const signUrl = `${webAppUrl}?pass=${encodeURIComponent(code)}`;
+      const signUrl = getCanonicalSignUrl(code);
       const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(signUrl)}`;
 
       Swal.fire({
