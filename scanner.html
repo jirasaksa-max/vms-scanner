@@ -179,7 +179,13 @@
       if (isScanned) return;
       isScanned = true;
 
-      const cleanCode = decodedText.trim().toUpperCase();
+      let cleanCode = (decodedText || '').trim();
+      // หากข้อความที่สแกนเป็น URL ของระบบ ให้สกัดเอารหัสบัตรออกมา
+      if (cleanCode.includes('pass=')) {
+        const m = cleanCode.match(/[?&]pass=([^&#]+)/i);
+        if (m) cleanCode = decodeURIComponent(m[1]);
+      }
+      cleanCode = cleanCode.toUpperCase();
 
       // สั่นเตือน + เสียง Beep
       if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
