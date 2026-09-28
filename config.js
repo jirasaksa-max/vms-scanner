@@ -254,6 +254,10 @@ if (typeof window !== 'undefined') {
                   }
                 }
 
+                const reqSign = (v.require_signature !== undefined)
+                  ? !!v.require_signature
+                  : (localStorage.getItem('VMS_REQUIRE_SIGNATURE') !== 'false');
+
                 // บันทึก log
                 await callSupabaseRest('visitor_logs', 'POST', {
                   pass_code: passCode,
@@ -271,7 +275,7 @@ if (typeof window !== 'undefined') {
                   guard_in_notes: v.guard_in_notes || null,
                   status: 'CHECKED_IN',
                   check_in_at: new Date().toISOString(),
-                  signature_status: 'PENDING'
+                  signature_status: reqSign ? 'PENDING' : 'NOT_REQUIRED'
                 });
 
                 // อัปเดตสถานะบัตรเป็น IN_USE
@@ -280,7 +284,12 @@ if (typeof window !== 'undefined') {
                   updated_at: new Date().toISOString()
                 });
 
-                res = { success: true, message: 'ลงทะเบียนเข้าสำเร็จ' };
+                res = {
+                  success: true,
+                  message: 'ลงทะเบียนเข้าสำเร็จ',
+                  require_signature: reqSign,
+                  pass_code: passCode
+                };
               }
 
               // 3. ค้นหาบัตรที่ค้างอยู่ (Check-Out) ผ่าน Supabase ตรง
@@ -328,14 +337,19 @@ if (typeof window !== 'undefined') {
                 const list = await callSupabaseRest(`visitor_logs?pass_code=eq.${encodeURIComponent(passCode)}&status=eq.CHECKED_IN&order=check_in_at.desc&limit=1&select=*`);
                 if (list && list.length > 0) {
                   const v = list[0];
+                  const isSigned = (v.signature_status === 'SIGNED');
+                  const isNotRequired = (v.signature_status === 'NOT_REQUIRED' || v.signature_status === 'EXEMPT');
                   res = {
                     success: true,
+                    state: isSigned ? 'ALREADY_SIGNED' : (isNotRequired ? 'NOT_REQUIRED' : 'PENDING'),
                     data: {
                       id: v.id,
                       pass_code: v.pass_code,
                       visitor_name: `${v.title || ''} ${v.first_name || ''} ${v.last_name || ''}`.trim() || 'ผู้มาติดต่อ',
                       department_or_house: v.department_or_house || v.contact_person || '-',
                       license_plate: v.license_plate || '-',
+                      purpose: v.purpose || 'ติดต่อทั่วไป',
+                      photo_base64: v.photo_base64 || '',
                       check_in_at: v.check_in_at,
                       signature_status: v.signature_status || 'PENDING',
                       signed_by: v.signed_by || '',
@@ -344,7 +358,12 @@ if (typeof window !== 'undefined') {
                     }
                   };
                 } else {
-                  res = { success: false, message: `ไม่พบบันทึกการเข้าพื้นที่ของบัตร ${passCode}` };
+                  res = {
+                    success: true,
+                    state: 'NOT_ACTIVE',
+                    pass_code: passCode,
+                    message: `บัตรหมายเลข "${passCode}" ยังไม่ได้ลงทะเบียนเข้า หรือคืนบัตรออกจากพื้นที่แล้ว`
+                  };
                 }
               }
 
@@ -432,10 +451,36 @@ if (typeof window !== 'undefined') {
                 res = { success: true, data: logs || [] };
               }
 
-              // 10. ดึงรายการบัตรทั้งหมดสำหรับ Admin
+              // 10. ดึงรายการบัตรทั้งหมดสำหรับ Admin พร้อมแนบข้อมูลผู้มาติดต่อที่ยังอยู่ในพื้นที่
               else if (propKey === 'getAdminPassesList') {
-                const passes = await callSupabaseRest('visitor_passes?order=pass_code.asc&select=*');
-                res = { success: true, data: passes || [] };
+                const passes = (await callSupabaseRest('visitor_passes?order=pass_code.asc&select=*')) || [];
+                const activeLogs = (await callSupabaseRest('visitor_logs?status=eq.CHECKED_IN&select=pass_code,title,first_name,last_name,department_or_house,contact_person,license_plate,purpose,photo_base64,check_in_at')) || [];
+
+                const activeMap = {};
+                activeLogs.forEach(l => {
+                  const name = `${l.title || ''} ${l.first_name || ''} ${l.last_name || ''}`.trim() || 'ผู้มาติดต่อ';
+                  activeMap[l.pass_code] = {
+                    visitor_name: name,
+                    department_or_house: l.department_or_house || l.contact_person || '-',
+                    license_plate: l.license_plate || '-',
+                    purpose: l.purpose || 'ติดต่อทั่วไป',
+                    photo_base64: l.photo_base64 || '',
+                    check_in_at: l.check_in_at
+                  };
+                });
+
+                passes.forEach(p => {
+                  if (activeMap[p.pass_code]) {
+                    p.visitor_name = activeMap[p.pass_code].visitor_name;
+                    p.department_or_house = activeMap[p.pass_code].department_or_house;
+                    p.license_plate = activeMap[p.pass_code].license_plate;
+                    p.purpose = activeMap[p.pass_code].purpose;
+                    p.photo_base64 = activeMap[p.pass_code].photo_base64;
+                    p.check_in_at = activeMap[p.pass_code].check_in_at;
+                  }
+                });
+
+                res = { success: true, data: passes };
               }
 
               // 11. ดึงการตั้งค่า Admin
