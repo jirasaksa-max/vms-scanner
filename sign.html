@@ -120,11 +120,20 @@
       </div>
 
       <!-- Visitor Details -->
-      <div class="p-5 space-y-2.5 text-xs text-slate-600 bg-slate-50/70 border-b border-slate-100">
-        <div class="flex justify-between items-center">
-          <span class="text-slate-500 font-medium">ชื่อผู้มาติดต่อ:</span>
-          <span class="font-extrabold text-slate-900 text-sm" id="dispVisitorName">-</span>
+      <div class="p-5 space-y-3 text-xs text-slate-600 bg-slate-50/70 border-b border-slate-100">
+        <!-- Photo and Visitor Name -->
+        <div class="flex items-center gap-3.5 pb-2.5 border-b border-slate-200/60">
+          <div class="w-14 h-14 rounded-2xl bg-white border border-slate-200 shadow-2xs overflow-hidden flex-shrink-0 flex items-center justify-center">
+            <img id="dispVisitorPhoto" src="" alt="ภาพถ่ายผู้มาติดต่อ" class="w-full h-full object-cover hidden">
+            <span id="dispVisitorPhotoPlaceholder" class="text-2xl text-slate-400">👤</span>
+          </div>
+          <div class="min-w-0 flex-1">
+            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">ผู้มาติดต่อ</span>
+            <div class="font-extrabold text-slate-900 text-sm truncate" id="dispVisitorName">-</div>
+            <div class="text-[11px] text-indigo-700 font-semibold truncate mt-0.5" id="dispPurposeBadge">-</div>
+          </div>
         </div>
+
         <div class="flex justify-between items-center">
           <span class="text-slate-500 font-medium">จุดที่มาติดต่อ:</span>
           <span class="font-bold text-indigo-700 text-xs bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-200" id="dispDepartment">-</span>
@@ -396,6 +405,24 @@
       document.getElementById('dispVisitorName').innerText = d.visitor_name || 'ผู้มาติดต่อ';
       document.getElementById('dispDepartment').innerText = d.department_or_house || '-';
       document.getElementById('dispLicensePlate').innerText = d.license_plate || '-';
+
+      const photoEl = document.getElementById('dispVisitorPhoto');
+      const photoPlace = document.getElementById('dispVisitorPhotoPlaceholder');
+      if (photoEl && photoPlace) {
+        if (d.photo_base64) {
+          photoEl.src = d.photo_base64;
+          photoEl.classList.remove('hidden');
+          photoPlace.classList.add('hidden');
+        } else {
+          photoEl.src = '';
+          photoEl.classList.add('hidden');
+          photoPlace.classList.remove('hidden');
+        }
+      }
+      const purposeEl = document.getElementById('dispPurposeBadge');
+      if (purposeEl) {
+        purposeEl.innerText = d.purpose ? ('วัตถุประสงค์: ' + d.purpose) : 'ติดต่อทั่วไป';
+      }
 
       if (d.check_in_at) {
         const inDate = new Date(d.check_in_at);
