@@ -177,24 +177,7 @@
             </span>
           </div>
 
-          <!-- รหัสบัตรใหญ่เต็มตา -->
-          <div class="space-y-2">
-            <label class="text-[11px] font-bold text-slate-700">หมายเลขบัตรคล้องคอ (Pass Code) *</label>
-            <input type="text" id="inPassCode" placeholder="ระบุบัตร เช่น V-001" class="w-full px-3 py-3 bg-blue-50/50 border-2 border-blue-300 rounded-2xl text-2xl font-black text-blue-800 text-center tracking-widest outline-none focus:border-blue-600 uppercase font-mono shadow-inner transition placeholder:text-blue-300 placeholder:text-lg">
-            
-            <div class="grid grid-cols-2 gap-2">
-              <button type="button" onclick="openGitHubScanner('inPassCode')" class="w-full py-2.5 px-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-1.5 font-bold shadow-xs transition active:scale-95 text-xs cursor-pointer">
-                <span class="text-sm">📷</span>
-                <span>สแกนกล้อง</span>
-              </button>
-              <button type="button" onclick="openQuickPassPickerModal('inPassCode')" class="w-full py-2.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl flex items-center justify-center gap-1.5 font-bold shadow-xs transition active:scale-95 text-xs cursor-pointer">
-                <span class="text-sm">🔢</span>
-                <span>เลือกเลขบัตร</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- เครื่องอ่านบัตร Smart Card (Type-C) สำหรับ Android App -->
+          <!-- 1. เครื่องอ่านบัตร Smart Card (Type-C) สำหรับ Android App (อยู่อันดับแรกสุด) -->
           <div id="smartCardContainer" class="p-3 bg-gradient-to-r from-blue-50/90 to-indigo-50/90 border border-blue-200 rounded-2xl space-y-2">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
@@ -228,41 +211,58 @@
             </div>
           </div>
 
-          <div class="relative flex py-0.5 items-center">
-            <div class="flex-grow border-t border-slate-200"></div>
-            <span class="flex-shrink mx-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">หรือถ่ายภาพแบบเดิม</span>
-            <div class="flex-grow border-t border-slate-200"></div>
+          <!-- 2. หมายเลขบัตรคล้องคอ (Pass Code) -->
+          <div class="space-y-2 pt-1">
+            <label class="text-[11px] font-bold text-slate-700">หมายเลขบัตรคล้องคอ (Pass Code) *</label>
+            <input type="text" id="inPassCode" placeholder="ระบุบัตร เช่น V-001" class="w-full px-3 py-3 bg-blue-50/50 border-2 border-blue-300 rounded-2xl text-2xl font-black text-blue-800 text-center tracking-widest outline-none focus:border-blue-600 uppercase font-mono shadow-inner transition placeholder:text-blue-300 placeholder:text-lg">
+            
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="openGitHubScanner('inPassCode')" class="w-full py-2.5 px-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-1.5 font-bold shadow-xs transition active:scale-95 text-xs cursor-pointer">
+                <span class="text-sm">📷</span>
+                <span>สแกนกล้อง</span>
+              </button>
+              <button type="button" onclick="openQuickPassPickerModal('inPassCode')" class="w-full py-2.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl flex items-center justify-center gap-1.5 font-bold shadow-xs transition active:scale-95 text-xs cursor-pointer">
+                <span class="text-sm">🔢</span>
+                <span>เลือกเลขบัตร</span>
+              </button>
+            </div>
           </div>
 
-          <!-- ถ่ายภาพบัตรประชาชน (Gemini OCR) -->
-          <div class="space-y-1.5 pt-1">
-            <label class="text-[11px] font-bold text-slate-700 flex items-center justify-between">
-              <span>ถ่ายภาพบัตรประชาชน</span>
-              <span class="text-[10px] text-indigo-600 font-semibold">Gemini AI OCR</span>
-            </label>
-            <input type="file" id="idCardFileInput" accept="image/*" capture="environment" class="hidden" onchange="handleIdCardPhoto(event)">
+          <!-- 3. ตัวเลือกเสริม: ถ่ายภาพด้วยกล้อง (ซ่อนเป็นค่าเริ่มต้น มีปุ่มกดเปิด) -->
+          <div class="pt-1">
+            <button type="button" onclick="toggleCameraOption()" class="w-full py-2 px-3 bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 border border-slate-200 rounded-xl text-[11px] font-semibold flex items-center justify-between transition cursor-pointer">
+              <span class="flex items-center gap-1.5">
+                <span>📷</span>
+                <span>ถ่ายภาพบัตรด้วยกล้อง (กรณีไม่มีเครื่องอ่าน Type-C)</span>
+              </span>
+              <span id="btnToggleCameraIcon" class="text-[10px] text-slate-400 font-bold">▼</span>
+            </button>
 
-            <div onclick="triggerIdCardCamera()" class="border-2 border-dashed border-blue-200 hover:border-blue-400 bg-blue-50/20 rounded-2xl p-4 text-center cursor-pointer transition active:scale-98">
-              <div id="cardPlaceholder" class="space-y-1.5">
-                <div class="w-11 h-11 rounded-2xl bg-white border border-blue-100 flex items-center justify-center text-xl shadow-xs mx-auto text-blue-600">
-                  📷
+            <div id="cameraCaptureWrapper" class="hidden mt-2 space-y-1.5">
+              <input type="file" id="idCardFileInput" accept="image/*" capture="environment" class="hidden" onchange="handleIdCardPhoto(event)">
+
+              <div onclick="triggerIdCardCamera()" class="border-2 border-dashed border-blue-200 hover:border-blue-400 bg-blue-50/20 rounded-2xl p-3 text-center cursor-pointer transition active:scale-98">
+                <div id="cardPlaceholder" class="space-y-1">
+                  <div class="w-9 h-9 rounded-xl bg-white border border-blue-100 flex items-center justify-center text-base shadow-xs mx-auto text-blue-600">
+                    📷
+                  </div>
+                  <div class="font-extrabold text-xs text-blue-900">แตะเพื่อถ่ายรูปบัตรประชาชน</div>
+                  <div class="text-[10px] text-slate-400">ระบบ AI จะอ่านชื่อและเลขบัตร 13 หลักอัตโนมัติ</div>
                 </div>
-                <div class="font-extrabold text-xs text-blue-900">แตะเพื่อถ่ายรูปบัตรประชาชน</div>
-                <div class="text-[11px] text-slate-400">ระบบ AI จะอ่านชื่อและเลขบัตร 13 หลักอัตโนมัติ</div>
+                <div id="cardPreviewContainer" class="hidden">
+                  <img id="cardPreviewImg" class="rounded-xl border border-slate-300 shadow-xs max-h-32 mx-auto object-cover" alt="Card Preview">
+                  <button type="button" onclick="event.stopPropagation(); triggerIdCardCamera();" class="mt-1.5 text-xs text-blue-600 font-bold hover:underline flex items-center justify-center gap-1 mx-auto cursor-pointer">
+                    <span>🔄</span> <span>ถ่ายภาพบัตรใหม่</span>
+                  </button>
+                </div>
               </div>
-              <div id="cardPreviewContainer" class="hidden">
-                <img id="cardPreviewImg" class="rounded-xl border border-slate-300 shadow-xs max-h-36 mx-auto object-cover" alt="Card Preview">
-                <button type="button" onclick="event.stopPropagation(); triggerIdCardCamera();" class="mt-2 text-xs text-blue-600 font-bold hover:underline flex items-center justify-center gap-1 mx-auto cursor-pointer">
-                  <span>🔄</span> <span>ถ่ายภาพบัตรใหม่</span>
-                </button>
-              </div>
-            </div>
 
-            <!-- Loading state -->
-            <div id="ocrLoading" class="hidden py-3 bg-blue-50 border border-blue-100 rounded-xl text-center space-y-1">
-              <div class="inline-block animate-spin text-base">⏳</div>
-              <div class="text-xs font-bold text-blue-700">Gemini AI กำลังอ่านข้อมูลบัตรประชาชน...</div>
-              <div class="text-[10px] text-blue-500">กรุณารอสักครู่ (ประมาณ 1-2 วินาที)</div>
+              <!-- Loading state -->
+              <div id="ocrLoading" class="hidden py-2.5 bg-blue-50 border border-blue-100 rounded-xl text-center space-y-1">
+                <div class="inline-block animate-spin text-base">⏳</div>
+                <div class="text-xs font-bold text-blue-700">Gemini AI กำลังอ่านข้อมูลบัตรประชาชน...</div>
+                <div class="text-[10px] text-blue-500">กรุณารอสักครู่ (ประมาณ 1-2 วินาที)</div>
+              </div>
             </div>
           </div>
         </div>
@@ -277,6 +277,28 @@
             <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
               สกัดอัตโนมัติ
             </span>
+          </div>
+
+          <!-- จุดแสดงภาพถ่ายบัตรประชาชนและข้อมูลที่สกัดได้ -->
+          <div id="extractedPhotoCard" class="hidden p-3 bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 border border-blue-200 rounded-2xl flex items-center gap-3.5 shadow-2xs">
+            <div class="relative shrink-0">
+              <img id="extractedPhotoDisplayImg" src="" alt="รูปถ่ายบัตรประชาชน" class="w-16 h-20 sm:w-20 sm:h-24 rounded-xl object-cover border-2 border-white shadow-md bg-slate-200">
+              <span id="extractedPhotoBadge" class="absolute -bottom-1 -right-1 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full shadow-xs flex items-center gap-0.5">
+                ✓ ชิปการ์ด
+              </span>
+            </div>
+            <div class="flex-1 min-w-0 space-y-1">
+              <div class="text-[10px] text-blue-600 font-bold uppercase tracking-wider flex items-center gap-1">
+                <span>👤</span> <span>รูปถ่ายผู้มาติดต่อ</span>
+              </div>
+              <div id="extractedPhotoDisplayName" class="text-xs sm:text-sm font-black text-slate-800 truncate leading-tight">-</div>
+              <div id="extractedPhotoDisplayCid" class="text-[11px] text-slate-500 font-mono font-semibold">-</div>
+              <div class="pt-0.5">
+                <span class="text-[9px] text-emerald-800 bg-emerald-100/80 border border-emerald-300 font-semibold px-2 py-0.5 rounded-md inline-flex items-center gap-1">
+                  <span>☁️</span> <span id="extractedPhotoDriveText">พร้อมบันทึกลง Google Drive</span>
+                </span>
+              </div>
+            </div>
           </div>
 
           <!-- เลขบัตรประชาชน 13 หลัก (PDPA Masking) -->
@@ -670,6 +692,23 @@
         if (d.address) document.getElementById('inAddress').value = d.address;
 
         const fullName = [d.title, d.first_name, d.last_name].filter(Boolean).join(' ');
+
+        // แสดงภาพถ่ายใน Widget Section 2
+        const photoCard = document.getElementById('extractedPhotoCard');
+        const photoImg = document.getElementById('extractedPhotoDisplayImg');
+        const photoName = document.getElementById('extractedPhotoDisplayName');
+        const photoCid = document.getElementById('extractedPhotoDisplayCid');
+        const photoBadge = document.getElementById('extractedPhotoBadge');
+        if (photoCard && photoImg) {
+          if (compressedCardPhotoBase64) {
+            photoImg.src = compressedCardPhotoBase64;
+            if (photoBadge) photoBadge.innerText = '✓ ภาพถ่าย';
+          }
+          if (photoName) photoName.innerText = fullName || '-';
+          if (photoCid) photoCid.innerText = d.id_card_number ? maskIdCard(d.id_card_number) : '-';
+          photoCard.classList.remove('hidden');
+        }
+
         Swal.fire({
           icon: 'success',
           title: 'อ่านบัตรสำเร็จ!',
@@ -902,6 +941,26 @@
         document.getElementById('cardPreviewContainer').classList.remove('hidden');
       }
 
+      // 5. แสดงภาพถ่ายและรายละเอียดใน Section 2 (จุดแสดงรูปภาพหลัก)
+      const photoCard = document.getElementById('extractedPhotoCard');
+      const photoImg = document.getElementById('extractedPhotoDisplayImg');
+      const photoName = document.getElementById('extractedPhotoDisplayName');
+      const photoCid = document.getElementById('extractedPhotoDisplayCid');
+      const photoBadge = document.getElementById('extractedPhotoBadge');
+      if (photoCard && photoImg) {
+        const fullNameTh = [data.titleTh, data.firstNameTh, data.lastNameTh].filter(Boolean).join(' ') || '-';
+        if (compressedCardPhotoBase64) {
+          photoImg.src = compressedCardPhotoBase64;
+          if (photoBadge) photoBadge.innerText = '✓ ชิปการ์ด';
+        } else {
+          photoImg.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(fullNameTh || 'Visitor') + '&background=e2e8f0&color=475569';
+          if (photoBadge) photoBadge.innerText = 'ข้อมูลชิป';
+        }
+        if (photoName) photoName.innerText = fullNameTh;
+        if (photoCid) photoCid.innerText = data.cid ? maskIdCard(data.cid) : '-';
+        photoCard.classList.remove('hidden');
+      }
+
       closeSmartCardModal();
 
       Swal.fire({
@@ -911,6 +970,21 @@
         timer: 1600,
         showConfirmButton: false
       });
+    }
+
+    function toggleCameraOption() {
+      const wrapper = document.getElementById('cameraCaptureWrapper');
+      const icon = document.getElementById('btnToggleCameraIcon');
+      if (wrapper) {
+        const isHidden = wrapper.classList.contains('hidden');
+        if (isHidden) {
+          wrapper.classList.remove('hidden');
+          if (icon) icon.innerText = '▲';
+        } else {
+          wrapper.classList.add('hidden');
+          if (icon) icon.innerText = '▼';
+        }
+      }
     }
 
     function triggerSmartCardRead() {
@@ -1251,6 +1325,10 @@
       document.getElementById('cardPlaceholder').classList.remove('hidden');
       document.getElementById('cardPreviewImg').src = '';
       document.getElementById('idCardFileInput').value = '';
+      const photoCard = document.getElementById('extractedPhotoCard');
+      if (photoCard) photoCard.classList.add('hidden');
+      const photoDisplayImg = document.getElementById('extractedPhotoDisplayImg');
+      if (photoDisplayImg) photoDisplayImg.src = '';
     }
 
     // ==========================================
