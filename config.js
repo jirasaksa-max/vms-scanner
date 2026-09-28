@@ -254,9 +254,10 @@ if (typeof window !== 'undefined') {
                   }
                 }
 
-                const reqSign = (v.require_signature !== undefined)
-                  ? !!v.require_signature
-                  : (localStorage.getItem('VMS_REQUIRE_SIGNATURE') !== 'false');
+                let notes = v.guard_in_notes || '';
+                if (v.name_en && !notes.includes('[EN:')) {
+                  notes = (notes ? (notes + ' ') : '') + `[EN: ${v.name_en}]`;
+                }
 
                 // บันทึก log
                 await callSupabaseRest('visitor_logs', 'POST', {
@@ -272,10 +273,10 @@ if (typeof window !== 'undefined') {
                   license_plate: v.license_plate || null,
                   purpose: v.purpose || 'ติดต่อทั่วไป',
                   photo_base64: photoUrl,
-                  guard_in_notes: v.guard_in_notes || null,
+                  guard_in_notes: notes || null,
                   status: 'CHECKED_IN',
                   check_in_at: new Date().toISOString(),
-                  signature_status: reqSign ? 'PENDING' : 'NOT_REQUIRED'
+                  signature_status: 'PENDING'
                 });
 
                 // อัปเดตสถานะบัตรเป็น IN_USE
@@ -287,7 +288,7 @@ if (typeof window !== 'undefined') {
                 res = {
                   success: true,
                   message: 'ลงทะเบียนเข้าสำเร็จ',
-                  require_signature: reqSign,
+                  require_signature: true,
                   pass_code: passCode
                 };
               }
@@ -297,8 +298,19 @@ if (typeof window !== 'undefined') {
                 const passCode = (args[0] || '').trim().toUpperCase();
                 const list = await callSupabaseRest(`visitor_logs?pass_code=eq.${encodeURIComponent(passCode)}&status=eq.CHECKED_IN&order=check_in_at.desc&limit=1&select=*`);
                 if (list && list.length > 0) {
-                  const reqSign = localStorage.getItem('VMS_REQUIRE_SIGNATURE') === 'true';
-                  const visitor = Object.assign({}, list[0], { require_signature: reqSign });
+                  const item = list[0];
+                  let nameEn = item.name_en || '';
+                  if (!nameEn && item.guard_in_notes) {
+                    const m = item.guard_in_notes.match(/\[EN:\s*([^\]]+)\]/i);
+                    if (m) nameEn = m[1];
+                  }
+                  const nameTh = `${item.title || ''} ${item.first_name || ''} ${item.last_name || ''}`.trim() || 'ผู้มาติดต่อ';
+                  const visitor = Object.assign({}, item, {
+                    visitor_name: nameTh,
+                    visitor_name_en: nameEn,
+                    require_signature: true,
+                    can_checkout: (item.signature_status === 'SIGNED')
+                  });
                   res = { success: true, data: visitor };
                 } else {
                   res = { success: false, message: `ไม่พบบันทึกการเข้าพื้นที่ของบัตร ${passCode} หรือถูกคืนบัตรไปแล้ว` };
@@ -310,6 +322,15 @@ if (typeof window !== 'undefined') {
                 const logId = args[0];
                 const passCode = (args[1] || '').trim().toUpperCase();
                 const notes = args[2] || '';
+
+                // ตรวจสอบความปลอดภัย: ผู้รับการติดต่อต้องเซ็นรับรองแล้วเท่านั้น ถึงจะให้ออกได้
+                const checkLogs = await callSupabaseRest(`visitor_logs?id=eq.${logId}&select=signature_status`);
+                if (checkLogs && checkLogs.length > 0) {
+                  const st = checkLogs[0].signature_status;
+                  if (st !== 'SIGNED') {
+                    throw new Error('ไม่อนุญาตให้ออก: ผู้รับการติดต่อยังไม่ได้ลงชื่อรับรองการเข้าพบ (กรุณาให้ผู้รับการติดต่อเซ็นชื่อก่อนคืนบัตร)');
+                  }
+                }
 
                 await callSupabaseRest(`visitor_logs?id=eq.${logId}`, 'PATCH', {
                   status: 'CHECKED_OUT',
@@ -327,8 +348,19 @@ if (typeof window !== 'undefined') {
 
               // 5. ดึงรายการบัตรที่ค้างอยู่สำหรับ รปภ.
               else if (propKey === 'getActiveVisitorsListForGuard') {
-                const list = await callSupabaseRest('visitor_logs?status=eq.CHECKED_IN&order=check_in_at.desc&select=id,pass_code,contact_person,department_or_house,license_plate,check_in_at,signed_by,signature_status');
-                res = { success: true, data: list || [] };
+                const list = await callSupabaseRest('visitor_logs?status=eq.CHECKED_IN&order=check_in_at.desc&select=id,pass_code,title,first_name,last_name,guard_in_notes,contact_person,department_or_house,license_plate,check_in_at,signed_by,signature_status');
+                const formatted = (list || []).map(v => {
+                  let nameEn = v.name_en || '';
+                  if (!nameEn && v.guard_in_notes) {
+                    const m = v.guard_in_notes.match(/\[EN:\s*([^\]]+)\]/i);
+                    if (m) nameEn = m[1];
+                  }
+                  return Object.assign({}, v, {
+                    visitor_name: `${v.title || ''} ${v.first_name || ''} ${v.last_name || ''}`.trim() || 'ผู้มาติดต่อ',
+                    visitor_name_en: nameEn
+                  });
+                });
+                res = { success: true, data: formatted };
               }
 
               // 6. ดึงข้อมูลบัตรสำหรับหน้าเซ็นชื่อดิจิทัล
@@ -338,14 +370,20 @@ if (typeof window !== 'undefined') {
                 if (list && list.length > 0) {
                   const v = list[0];
                   const isSigned = (v.signature_status === 'SIGNED');
-                  const isNotRequired = (v.signature_status === 'NOT_REQUIRED' || v.signature_status === 'EXEMPT');
+                  let nameEn = v.name_en || '';
+                  if (!nameEn && v.guard_in_notes) {
+                    const m = v.guard_in_notes.match(/\[EN:\s*([^\]]+)\]/i);
+                    if (m) nameEn = m[1];
+                  }
+                  const nameTh = `${v.title || ''} ${v.first_name || ''} ${v.last_name || ''}`.trim() || 'ผู้มาติดต่อ';
                   res = {
                     success: true,
-                    state: isSigned ? 'ALREADY_SIGNED' : (isNotRequired ? 'NOT_REQUIRED' : 'PENDING'),
+                    state: isSigned ? 'ALREADY_SIGNED' : 'PENDING',
                     data: {
                       id: v.id,
                       pass_code: v.pass_code,
-                      visitor_name: `${v.title || ''} ${v.first_name || ''} ${v.last_name || ''}`.trim() || 'ผู้มาติดต่อ',
+                      visitor_name: nameTh,
+                      visitor_name_en: nameEn,
                       department_or_house: v.department_or_house || v.contact_person || '-',
                       license_plate: v.license_plate || '-',
                       purpose: v.purpose || 'ติดต่อทั่วไป',
@@ -454,13 +492,19 @@ if (typeof window !== 'undefined') {
               // 10. ดึงรายการบัตรทั้งหมดสำหรับ Admin พร้อมแนบข้อมูลผู้มาติดต่อที่ยังอยู่ในพื้นที่
               else if (propKey === 'getAdminPassesList') {
                 const passes = (await callSupabaseRest('visitor_passes?order=pass_code.asc&select=*')) || [];
-                const activeLogs = (await callSupabaseRest('visitor_logs?status=eq.CHECKED_IN&select=pass_code,title,first_name,last_name,department_or_house,contact_person,license_plate,purpose,photo_base64,check_in_at')) || [];
+                const activeLogs = (await callSupabaseRest('visitor_logs?status=eq.CHECKED_IN&select=pass_code,title,first_name,last_name,guard_in_notes,department_or_house,contact_person,license_plate,purpose,photo_base64,check_in_at')) || [];
 
                 const activeMap = {};
                 activeLogs.forEach(l => {
-                  const name = `${l.title || ''} ${l.first_name || ''} ${l.last_name || ''}`.trim() || 'ผู้มาติดต่อ';
+                  const nameTh = `${l.title || ''} ${l.first_name || ''} ${l.last_name || ''}`.trim() || 'ผู้มาติดต่อ';
+                  let nameEn = l.name_en || '';
+                  if (!nameEn && l.guard_in_notes) {
+                    const m = l.guard_in_notes.match(/\[EN:\s*([^\]]+)\]/i);
+                    if (m) nameEn = m[1];
+                  }
                   activeMap[l.pass_code] = {
-                    visitor_name: name,
+                    visitor_name: nameTh,
+                    visitor_name_en: nameEn,
                     department_or_house: l.department_or_house || l.contact_person || '-',
                     license_plate: l.license_plate || '-',
                     purpose: l.purpose || 'ติดต่อทั่วไป',
@@ -472,6 +516,7 @@ if (typeof window !== 'undefined') {
                 passes.forEach(p => {
                   if (activeMap[p.pass_code]) {
                     p.visitor_name = activeMap[p.pass_code].visitor_name;
+                    p.visitor_name_en = activeMap[p.pass_code].visitor_name_en;
                     p.department_or_house = activeMap[p.pass_code].department_or_house;
                     p.license_plate = activeMap[p.pass_code].license_plate;
                     p.purpose = activeMap[p.pass_code].purpose;
