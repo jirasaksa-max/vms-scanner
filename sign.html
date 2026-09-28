@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>เซ็นชื่อรับรองการเข้าพบ (Host Digital Signature) - VMS</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- VMS Supabase & Universal Polyfill Configuration -->
+  <script src="config.js"></script>
+
+  <style>
+    body {
+      font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #signatureCanvas {
+      touch-action: none;
+      cursor: crosshair;
+    }
+    /* SweetAlert Light Modern Override */
+    .swal2-popup {
+      border-radius: 1.5rem !important;
+      font-family: 'Prompt', sans-serif !important;
+      padding: 1.75rem !important;
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.15) !important;
+      border: 1px solid #e2e8f0 !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-50/70 text-slate-800 min-h-screen pb-12 flex flex-col font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900">
+
+  <!-- Header -->
+  <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 shadow-xs">
+    <div class="max-w-md mx-auto px-4 py-3.5 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 text-lg font-bold">
+          ✍️
+        </div>
+        <div>
+          <h1 class="font-extrabold text-base text-slate-900 leading-tight">เซ็นชื่อรับรองการเข้าพบ</h1>
+          <p class="text-xs text-slate-500">ระบบบันทึกผู้มาติดต่อ (VMS) • Host Signature</p>
+        </div>
+      </div>
+      <div class="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+        สำหรับผู้รับการติดต่อ
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-md mx-auto p-4 w-full flex-1 space-y-4">
+
+    <!-- Search/Select Pass Box (Only shown if pass not in URL) -->
+    <div id="passSearchBox" class="hidden bg-white rounded-3xl shadow-xs border border-slate-200/80 p-5 space-y-3">
+      <label class="text-xs font-bold text-slate-700 block">ระบุรหัสบัตรผู้มาติดต่อ</label>
+      <div class="flex gap-2">
+        <input type="text" id="inputPassCode" placeholder="เช่น V-001" class="flex-1 px-4 py-2.5 bg-slate-50 border-2 border-indigo-200 rounded-2xl text-base font-black text-indigo-950 text-center uppercase tracking-wider outline-none focus:border-indigo-600 font-mono transition">
+        <button type="button" onclick="loadPassData()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold transition shadow-xs active:scale-95 cursor-pointer">
+          ค้นหาบัตร
+        </button>
+      </div>
+      <p class="text-[11px] text-slate-400 text-center">ดูรหัสบัตรได้จากบัตรคล้องคอที่ผู้มาติดต่อถือมา</p>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingBox" class="hidden bg-white rounded-3xl p-8 text-center space-y-3 shadow-xs border border-slate-200">
+      <div class="animate-spin text-3xl text-indigo-600">⏳</div>
+      <div class="text-xs font-bold text-slate-700">กำลังตรวจสอบข้อมูลผู้มาติดต่อ...</div>
+    </div>
+
+    <!-- Not Active State Card (When badge is available/checked out) -->
+    <div id="notActiveCard" class="hidden bg-white rounded-3xl shadow-xs border border-slate-200/90 overflow-hidden text-center p-6 space-y-4">
+      <div class="w-16 h-16 bg-slate-100 text-slate-500 rounded-3xl border border-slate-200 flex items-center justify-center text-3xl mx-auto shadow-xs">
+        📭
+      </div>
+      <div class="space-y-1.5">
+        <span class="inline-block px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-mono font-bold text-xs tracking-wider border border-slate-200" id="dispInactivePassCode">V-001</span>
+        <h3 class="font-extrabold text-base text-slate-800">บัตรยังไม่ได้ลงทะเบียนเข้า หรือคืนบัตรแล้ว</h3>
+        <p class="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
+          ในขณะนี้บัตรใบนี้ไม่มีรายการผู้มาติดต่อค้างอยู่ในระบบ จึงไม่ต้องลงชื่อรับรอง
+        </p>
+      </div>
+      <div class="p-3 bg-amber-50/80 rounded-2xl border border-amber-200/70 text-[11px] text-amber-800 text-left space-y-1">
+        <div class="font-bold flex items-center gap-1">
+          <span>💡</span> <span>ข้อแนะนำ:</span>
+        </div>
+        <p class="text-slate-600 leading-relaxed">
+          หากผู้มาติดต่อเพิ่งมาถึง กรุณารอให้เจ้าหน้าที่ รปภ. ดำเนินการลงทะเบียนบัตรเข้าพื้นที่ก่อน แล้วจึงกดปุ่ม <b>"ตรวจสอบอีกครั้ง"</b>
+        </p>
+      </div>
+      <div class="pt-1 flex flex-col gap-2">
+        <button type="button" onclick="loadPassData()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-xs shadow-md shadow-indigo-600/20 active:scale-98 transition flex items-center justify-center gap-1.5 cursor-pointer">
+          <span>🔄</span> <span>ตรวจสอบใหม่อีกครั้ง</span>
+        </button>
+        <button type="button" onclick="showSearchPassBox()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-2xl text-xs transition cursor-pointer">
+          ระบุรหัสบัตรอื่น
+        </button>
+      </div>
+    </div>
+
+    <!-- Visitor Information Card -->
+    <div id="visitorCard" class="hidden bg-white rounded-3xl shadow-md border border-slate-200/90 overflow-hidden space-y-0">
+      <!-- Card Header -->
+      <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-4 flex justify-between items-center">
+        <div>
+          <span class="text-[10px] text-indigo-200 uppercase font-bold tracking-wider">VISITOR PASS</span>
+          <div class="text-2xl font-mono font-black tracking-wider mt-0.5" id="dispPassCode">V-001</div>
+        </div>
+        <div id="dispStatusBadge" class="text-xs font-bold px-3 py-1 rounded-full bg-amber-400 text-amber-950 shadow-xs">
+          รอลายเซ็น
+        </div>
+      </div>
+
+      <!-- Visitor Details -->
+      <div class="p-5 space-y-2.5 text-xs text-slate-600 bg-slate-50/70 border-b border-slate-100">
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500 font-medium">ชื่อผู้มาติดต่อ:</span>
+          <span class="font-extrabold text-slate-900 text-sm" id="dispVisitorName">-</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500 font-medium">จุดที่มาติดต่อ:</span>
+          <span class="font-bold text-indigo-700 text-xs bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-200" id="dispDepartment">-</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500 font-medium">ทะเบียนรถ:</span>
+          <span class="font-mono font-bold text-slate-800" id="dispLicensePlate">-</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500 font-medium">เวลาที่เข้าพื้นที่:</span>
+          <span class="text-slate-700 font-semibold" id="dispCheckInTime">-</span>
+        </div>
+      </div>
+
+      <!-- Already Signed View -->
+      <div id="alreadySignedView" class="hidden p-6 text-center space-y-4">
+        <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-3xl border border-emerald-200 flex items-center justify-center text-3xl mx-auto shadow-xs">
+          ✓
+        </div>
+        <div>
+          <h3 class="font-extrabold text-base text-emerald-800">บัตรนี้ได้รับการเซ็นรับรองแล้ว</h3>
+          <p class="text-xs text-slate-500 mt-1 font-medium" id="dispSignedInfo">-</p>
+        </div>
+
+        <div id="signaturePreviewBox" class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col items-center">
+          <span class="text-[11px] text-slate-400 mb-1.5 font-medium">ภาพลายเซ็นที่จัดเก็บใน Google Drive:</span>
+          <img id="imgSavedSignature" src="" alt="ลายเซ็น" class="max-h-28 object-contain bg-white rounded-xl p-2 border border-slate-200 shadow-xs">
+        </div>
+
+        <div class="p-3.5 bg-emerald-50 rounded-2xl text-xs text-emerald-800 border border-emerald-200 font-medium leading-relaxed">
+          ✅ ผู้มาติดต่อสามารถนำบัตรใบนี้ไปคืนที่ป้อม รปภ. เพื่อออกจากพื้นที่ได้ทันที
+        </div>
+      </div>
+
+      <!-- Signature Pad Form (When Pending) -->
+      <div id="signFormView" class="p-6 space-y-4">
+        <!-- Optional Banner when Not Required -->
+        <div id="notRequiredBanner" class="hidden p-3 bg-blue-50 border border-blue-200 rounded-2xl text-xs text-blue-900 space-y-1">
+          <div class="font-bold flex items-center gap-1 text-blue-800">
+            <span>ℹ️</span> <span>รายการนี้ไม่จำเป็นต้องเซ็นชื่อรับรอง</span>
+          </div>
+          <p class="text-[11px] text-slate-600 leading-relaxed">
+            รปภ. ปิดการบังคับเซ็นสำหรับรายการนี้ แต่ท่านสามารถลงชื่อรับรองไว้เป็นหลักฐานได้ตามสะดวก
+          </p>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <span>✍️</span> <span>วาดลายเซ็นของคุณ (ใช้นิ้วเซ็นบนจอได้เลย)</span>
+            </label>
+            <button type="button" onclick="clearSignature()" class="text-xs text-red-500 hover:text-red-700 hover:underline font-semibold cursor-pointer">
+              ล้างลายเซ็น
+            </button>
+          </div>
+          <div class="border-2 border-dashed border-indigo-200 rounded-2xl bg-white overflow-hidden shadow-inner relative flex items-center justify-center hover:border-indigo-400 transition">
+            <canvas id="signatureCanvas" width="360" height="180" class="w-full bg-white touch-none cursor-crosshair"></canvas>
+            <div id="canvasHint" class="absolute pointer-events-none text-slate-400 text-xs font-medium select-none">
+              แตะหรือลากนิ้วเพื่อเซ็นชื่อตรงนี้
+            </div>
+          </div>
+        </div>
+
+        <button type="button" onclick="submitSignature()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-extrabold rounded-2xl shadow-lg shadow-indigo-600/20 text-sm transition flex items-center justify-center gap-2 cursor-pointer mt-2">
+          <span>✍️</span>
+          <span>ยืนยันการเซ็นรับรองการเข้าพบ</span>
+        </button>
+
+        <p class="text-[11px] text-slate-400 text-center leading-relaxed">
+          * ภาพลายเซ็นจะถูกจัดเก็บลงใน Google Drive อย่างปลอดภัย เพื่อเป็นหลักฐานให้ รปภ. อนุญาตให้ออกจากพื้นที่
+        </p>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    let currentPassCode = '';
+    let canvas = null;
+    let ctx = null;
+    let isDrawing = false;
+    let hasDrawn = false;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initSignatureCanvas();
+
+      // 1. อ่านรหัสบัตรจาก window.VMS_SERVER_PARAMS (ส่งตรงจาก doGet ของ Google Apps Script)
+      // หรืออ่านจาก window.location.search (กรณี Direct URL / External)
+      let passParam = '';
+      if (typeof window.VMS_SERVER_PARAMS === 'object' && window.VMS_SERVER_PARAMS && window.VMS_SERVER_PARAMS.pass) {
+        passParam = window.VMS_SERVER_PARAMS.pass;
+      }
+      
+      if (!passParam) {
+        const urlParams = new URLSearchParams(window.location.search);
+        passParam = urlParams.get('pass') || urlParams.get('p') || urlParams.get('scanned') || urlParams.get('code') || '';
+      }
+
+      if (passParam) {
+        if (passParam.includes('pass=')) {
+          const m = passParam.match(/[?&]pass=([^&#]+)/i);
+          if (m) passParam = decodeURIComponent(m[1]);
+        }
+        passParam = passParam.trim().toUpperCase();
+        
+        const inputPassElem = document.getElementById('inputPassCode');
+        if (inputPassElem) inputPassElem.value = passParam;
+        currentPassCode = passParam;
+
+        // สแกน QR บนบัตรมาโดยตรง ซ่อนกล่องค้นหาทันที และสั่งโหลดข้อมูลขึ้นมาเซ็นชื่อเลย
+        const searchBox = document.getElementById('passSearchBox');
+        if (searchBox) searchBox.classList.add('hidden');
+
+        loadPassData();
+      } else {
+        // หากไม่มีรหัสบัตรใน URL หรือ Server Params ให้แสดงกล่องค้นหา
+        const searchBox = document.getElementById('passSearchBox');
+        if (searchBox) searchBox.classList.remove('hidden');
+      }
+    });
+
+    function showSearchPassBox() {
+      const searchBox = document.getElementById('passSearchBox');
+      if (searchBox) searchBox.classList.remove('hidden');
+      const input = document.getElementById('inputPassCode');
+      input.focus();
+      input.select();
+    }
+
+    // ==========================================
+    // SIGNATURE CANVAS (POINTER EVENTS - TOUCH, PEN, MOUSE)
+    // ==========================================
+    function initSignatureCanvas() {
+      canvas = document.getElementById('signatureCanvas');
+      if (!canvas) return;
+      ctx = canvas.getContext('2d');
+
+      // Pointer Events รองรับทั้งนิ้วมือ, ปากกา Stylus, และเมาส์
+      canvas.addEventListener('pointerdown', (e) => {
+        try {
+          canvas.setPointerCapture(e.pointerId);
+        } catch (err) {}
+        isDrawing = true;
+        hasDrawn = true;
+        const hint = document.getElementById('canvasHint');
+        if (hint) hint.style.display = 'none';
+        const pos = getCanvasCoords(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+      });
+
+      canvas.addEventListener('pointermove', (e) => {
+        if (!isDrawing) return;
+        const pos = getCanvasCoords(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+      });
+
+      const stopDrawing = (e) => {
+        if (isDrawing) {
+          ctx.closePath();
+          isDrawing = false;
+        }
+      };
+
+      canvas.addEventListener('pointerup', stopDrawing);
+      canvas.addEventListener('pointercancel', stopDrawing);
+
+      window.addEventListener('resize', () => {
+        resizeCanvasIfNeeded();
+      });
+    }
+
+    function resizeCanvasIfNeeded() {
+      if (!canvas || !ctx) return;
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        const targetW = Math.round(rect.width * 2);
+        const targetH = Math.round(rect.height * 2);
+        if (canvas.width !== targetW || canvas.height !== targetH) {
+          canvas.width = targetW;
+          canvas.height = targetH;
+          ctx.scale(2, 2);
+        }
+        ctx.strokeStyle = '#1e1b4b'; // Deep navy
+        ctx.lineWidth = 2.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+      }
+    }
+
+    function getCanvasCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
+
+    function clearSignature() {
+      if (!canvas || !ctx) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      hasDrawn = false;
+      const hint = document.getElementById('canvasHint');
+      if (hint) hint.style.display = 'block';
+    }
+
+    // ==========================================
+    // LOAD & SUBMIT DATA
+    // ==========================================
+    function loadPassData() {
+      let code = (document.getElementById('inputPassCode')?.value || currentPassCode || '').trim();
+      if (code.includes('pass=')) {
+        const m = code.match(/[?&]pass=([^&#]+)/i);
+        if (m) code = decodeURIComponent(m[1]);
+      }
+      code = code.trim().toUpperCase();
+
+      if (!code) {
+        Swal.fire('กรุณาระบุรหัสบัตร', 'พิมพ์รหัสบัตร เช่น V-001 หรือสแกน QR บนบัตร', 'warning');
+        return;
+      }
+      currentPassCode = code;
+
+      // ซ่อนการ์ดเดิมทั้งหมดก่อนโหลด
+      document.getElementById('visitorCard').classList.add('hidden');
+      document.getElementById('notActiveCard').classList.add('hidden');
+      document.getElementById('loadingBox').classList.remove('hidden');
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(onPassDataLoaded)
+          .withFailureHandler(err => {
+            document.getElementById('loadingBox').classList.add('hidden');
+            Swal.fire('เกิดข้อผิดพลาด', err.message || err.toString(), 'error');
+          })
+          .getVisitorPassForSigning(currentPassCode);
+      } else {
+        callExternalApi('getVisitorPassForSigning', { passCode: currentPassCode })
+          .then(onPassDataLoaded)
+          .catch(err => {
+            document.getElementById('loadingBox').classList.add('hidden');
+            Swal.fire('เกิดข้อผิดพลาด', err.message || err.toString(), 'error');
+          });
+      }
+    }
+
+    function onPassDataLoaded(res) {
+      document.getElementById('loadingBox').classList.add('hidden');
+
+      if (!res || !res.success) {
+        Swal.fire('ไม่พบข้อมูลบัตร', (res && res.message) || 'เกิดข้อผิดพลาดในการตรวจสอบบัตร', 'warning');
+        return;
+      }
+
+      // กรณีที่ 1: บัตรไม่ได้อยู่ในสถานะใช้งาน (ยังไม่เช็คอิน หรือเช็คเอาท์คืนบัตรแล้ว)
+      if (res.state === 'NOT_ACTIVE') {
+        document.getElementById('visitorCard').classList.add('hidden');
+        document.getElementById('notActiveCard').classList.remove('hidden');
+        document.getElementById('dispInactivePassCode').innerText = res.pass_code || currentPassCode;
+        return;
+      }
+
+      // กรณีที่ 2: บัตรมีการเช็คอินอยู่ในระบบ (CHECKED_IN)
+      document.getElementById('notActiveCard').classList.add('hidden');
+      const d = res.data;
+      document.getElementById('dispPassCode').innerText = d.pass_code;
+      document.getElementById('dispVisitorName').innerText = d.visitor_name || 'ผู้มาติดต่อ';
+      document.getElementById('dispDepartment').innerText = d.department_or_house || '-';
+      document.getElementById('dispLicensePlate').innerText = d.license_plate || '-';
+
+      if (d.check_in_at) {
+        const inDate = new Date(d.check_in_at);
+        document.getElementById('dispCheckInTime').innerText = inDate.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น. (' + inDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) + ')';
+      }
+
+      const isSigned = (res.state === 'ALREADY_SIGNED' || d.signature_status === 'SIGNED');
+      const isNotRequired = (res.state === 'NOT_REQUIRED' || d.signature_status === 'NOT_REQUIRED');
+
+      const notRequiredBanner = document.getElementById('notRequiredBanner');
+      if (notRequiredBanner) {
+        notRequiredBanner.classList.toggle('hidden', !isNotRequired);
+      }
+
+      if (isSigned) {
+        document.getElementById('dispStatusBadge').className = 'text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 shadow-xs';
+        document.getElementById('dispStatusBadge').innerText = '✓ เซ็นรับรองแล้ว';
+        
+        document.getElementById('dispSignedInfo').innerText = `ผู้รับรอง: ${d.signed_by || '-'} เมื่อ ${d.signed_at ? new Date(d.signed_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.' : '-'}`;
+        
+        if (d.signature_url) {
+          document.getElementById('imgSavedSignature').src = d.signature_url;
+          document.getElementById('signaturePreviewBox').classList.remove('hidden');
+        } else {
+          document.getElementById('signaturePreviewBox').classList.add('hidden');
+        }
+
+        document.getElementById('alreadySignedView').classList.remove('hidden');
+        document.getElementById('signFormView').classList.add('hidden');
+      } else {
+        if (isNotRequired) {
+          document.getElementById('dispStatusBadge').className = 'text-xs font-bold px-3 py-1 rounded-full bg-blue-100 text-blue-800 shadow-xs';
+          document.getElementById('dispStatusBadge').innerText = '⚪ ไม่ต้องลงชื่อ';
+        } else {
+          document.getElementById('dispStatusBadge').className = 'text-xs font-bold px-3 py-1 rounded-full bg-amber-400 text-amber-950 shadow-xs';
+          document.getElementById('dispStatusBadge').innerText = '⏳ รอลายเซ็น';
+        }
+        
+        document.getElementById('alreadySignedView').classList.add('hidden');
+        document.getElementById('signFormView').classList.remove('hidden');
+      }
+
+      document.getElementById('visitorCard').classList.remove('hidden');
+
+      // ปรับขนาด canvas ให้พอดีกับหน้าจอหลังจากแสดงผลการ์ด
+      setTimeout(() => {
+        resizeCanvasIfNeeded();
+        clearSignature();
+      }, 50);
+
+      document.getElementById('visitorCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function submitSignature() {
+      if (!hasDrawn) {
+        Swal.fire('กรุณาวาดลายเซ็น', 'โปรดวาดลายเซ็นของคุณลงในกรอบก่อนยืนยัน', 'warning');
+        return;
+      }
+
+      const signatureDataUrl = canvas.toDataURL('image/png');
+
+      Swal.fire({
+        title: 'กำลังบันทึกลายเซ็น...',
+        text: 'กำลังบันทึกไฟล์ภาพลง Google Drive และอัปเดตระบบ',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(onSignatureSuccess)
+          .withFailureHandler(err => {
+            Swal.fire('บันทึกผิดพลาด', err.message || err.toString(), 'error');
+          })
+          .submitHostSignature(currentPassCode, '', signatureDataUrl, '');
+      } else {
+        callExternalApi('submitHostSignature', {
+          passCode: currentPassCode,
+          hostName: '',
+          signatureBase64: signatureDataUrl,
+          remarks: ''
+        })
+        .then(onSignatureSuccess)
+        .catch(err => {
+          Swal.fire('บันทึกผิดพลาด', err.message || err.toString(), 'error');
+        });
+      }
+    }
+
+    function onSignatureSuccess(res) {
+      if (res.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'เซ็นรับรองสำเร็จ!',
+          text: `บันทึกการรับรองบัตร ${currentPassCode} เรียบร้อยแล้ว ผู้มาติดต่อสามารถคืนบัตรเพื่อให้ออกได้`,
+          confirmButtonText: 'ตกลง'
+        }).then(() => {
+          loadPassData();
+        });
+      } else {
+        Swal.fire('เกิดข้อผิดพลาด', res.message, 'error');
+      }
+    }
+
+    // Helper: Call Google Apps Script Web App Endpoint if hosted on GitHub Pages
+    async function callExternalApi(action, payload) {
+      const gasUrl = (typeof VMS_CONFIG !== 'undefined' && VMS_CONFIG.GAS_API_URL) ? VMS_CONFIG.GAS_API_URL : '';
+      if (!gasUrl) {
+        throw new Error('ไม่พบการกำหนดค่า GAS_API_URL');
+      }
+      const response = await fetch(gasUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(Object.assign({ action: action }, payload))
+      });
+      return await response.json();
+    }
+  </script>
+</body>
+</html>
