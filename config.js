@@ -237,6 +237,23 @@ if (typeof window !== 'undefined') {
                   throw new Error(`บัตรหมายเลข ${passCode} กำลังถูกใช้งานอยู่ ยังไม่ได้ทำรายการออก`);
                 }
 
+                // หากมีภาพถ่าย ให้บันทึกลง Google Drive ผ่าน GAS Web App
+                let photoUrl = v.photo_base64 || null;
+                if (photoUrl && photoUrl.length > 100 && !photoUrl.startsWith('http')) {
+                  try {
+                    const driveRes = await callGasApi('savePhotoToDrive', {
+                      photo_base64: photoUrl,
+                      id_card_number: v.id_card_number,
+                      full_name: `${v.first_name || ''} ${v.last_name || ''}`.trim()
+                    });
+                    if (driveRes && driveRes.success && driveRes.fileUrl) {
+                      photoUrl = driveRes.fileUrl;
+                    }
+                  } catch (driveErr) {
+                    console.warn('Failed to upload photo to Drive, using base64:', driveErr);
+                  }
+                }
+
                 // บันทึก log
                 await callSupabaseRest('visitor_logs', 'POST', {
                   pass_code: passCode,
@@ -244,12 +261,13 @@ if (typeof window !== 'undefined') {
                   title: v.title || null,
                   first_name: v.first_name || null,
                   last_name: v.last_name || null,
+                  birth_date: v.birth_date || null,
                   address: v.address || null,
                   contact_person: v.contact_person || null,
                   department_or_house: v.department_or_house || v.contact_person || null,
                   license_plate: v.license_plate || null,
                   purpose: v.purpose || 'ติดต่อทั่วไป',
-                  photo_base64: v.photo_base64 || null,
+                  photo_base64: photoUrl,
                   guard_in_notes: v.guard_in_notes || null,
                   status: 'CHECKED_IN',
                   check_in_at: new Date().toISOString(),
