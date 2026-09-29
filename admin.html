@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="th" class="h-full">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,9 @@
   <!-- Google Fonts: Prompt -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+    rel="stylesheet">
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- VMS Supabase & Universal Polyfill Configuration -->
@@ -22,7 +25,7 @@
     body {
       font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
-    
+
     /* 16:9 Fullscreen Landscape Container */
     .widescreen-container {
       width: 100%;
@@ -36,14 +39,17 @@
       width: 7px;
       height: 7px;
     }
+
     ::-webkit-scrollbar-track {
       background: #f1f5f9;
       border-radius: 8px;
     }
+
     ::-webkit-scrollbar-thumb {
       background: #cbd5e1;
       border-radius: 8px;
     }
+
     ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
@@ -56,11 +62,13 @@
       box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.15) !important;
       border: 1px solid #e2e8f0 !important;
     }
+
     .swal2-title {
       font-size: 1.25rem !important;
       font-weight: 700 !important;
       color: #0f172a !important;
     }
+
     .swal2-html-container {
       color: #475569 !important;
     }
@@ -71,29 +79,45 @@
         background-color: white !important;
         color: black !important;
       }
-      header, nav, .no-print, button, select, input, .md\:hidden {
+
+      header,
+      nav,
+      .no-print,
+      button,
+      select,
+      input,
+      .md\:hidden {
         display: none !important;
       }
+
       .widescreen-container {
         max-width: 100% !important;
         padding: 0 !important;
         margin: 0 !important;
       }
+
       .admin-tab {
         display: block !important;
       }
-      #tabOverview, #tabLogs, #tabPasses, #tabSettings {
+
+      #tabOverview,
+      #tabLogs,
+      #tabPasses,
+      #tabSettings {
         display: none !important;
       }
+
       #tabQRCodes {
         display: block !important;
       }
+
       .print-area {
         display: grid !important;
         grid-template-columns: repeat(3, 1fr) !important;
         gap: 16px !important;
         padding: 10px !important;
       }
+
       .visitor-card-print {
         background: white !important;
         border: 2px dashed #64748b !important;
@@ -102,29 +126,35 @@
         box-shadow: none !important;
         page-break-inside: avoid !important;
       }
+
       .visitor-card-print * {
         color: black !important;
       }
     }
   </style>
 </head>
-<body class="bg-slate-50/70 text-slate-800 min-h-screen flex flex-col font-sans antialiased selection:bg-blue-100 selection:text-blue-900">
+
+<body
+  class="bg-slate-50/70 text-slate-800 min-h-screen flex flex-col font-sans antialiased selection:bg-blue-100 selection:text-blue-900">
 
   <!-- ========================================== -->
   <!-- TOP NAVIGATION BAR (BRIGHT & MODERN 16:9) -->
   <!-- ========================================== -->
   <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 shadow-xs no-print">
     <div class="widescreen-container px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
-      
+
       <!-- Brand Logo & Title -->
       <div class="flex items-center gap-3.5 shrink-0">
-        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-blue-500 flex items-center justify-center text-white shadow-md shadow-blue-500/20 text-xl font-bold">
+        <div
+          class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-blue-500 flex items-center justify-center text-white shadow-md shadow-blue-500/20 text-xl font-bold">
           🛡️
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="font-extrabold text-base lg:text-lg text-slate-900 tracking-tight leading-tight">VMS Control Center</h1>
-            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+            <h1 class="font-extrabold text-base lg:text-lg text-slate-900 tracking-tight leading-tight">RX VMS Control
+              Center</h1>
+            <span
+              class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
               Admin Enterprise
             </span>
           </div>
@@ -136,24 +166,30 @@
       </div>
 
       <!-- Navigation Tabs (Capsule Bar) -->
-      <nav id="adminHeaderNav" class="hidden md:flex items-center gap-1.5 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/70 shadow-inner">
-        <button onclick="switchAdminTab('tabOverview')" id="btnTabOverview" class="admin-nav-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-blue-600 shadow-sm border border-slate-200/60 transition active:scale-95 flex items-center gap-1.5">
+      <nav id="adminHeaderNav"
+        class="hidden md:flex items-center gap-1.5 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/70 shadow-inner">
+        <button onclick="switchAdminTab('tabOverview')" id="btnTabOverview"
+          class="admin-nav-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-blue-600 shadow-sm border border-slate-200/60 transition active:scale-95 flex items-center gap-1.5">
           <span>📊</span>
           <span>ภาพรวม</span>
         </button>
-        <button onclick="switchAdminTab('tabLogs')" id="btnTabLogs" class="admin-nav-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/60 transition active:scale-95 flex items-center gap-1.5">
+        <button onclick="switchAdminTab('tabLogs')" id="btnTabLogs"
+          class="admin-nav-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/60 transition active:scale-95 flex items-center gap-1.5">
           <span>📋</span>
           <span>ข้อมูลผู้มาติดต่อทั้งหมด</span>
         </button>
-        <button onclick="switchAdminTab('tabPasses')" id="btnTabPasses" class="admin-nav-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/60 transition active:scale-95 flex items-center gap-1.5">
+        <button onclick="switchAdminTab('tabPasses')" id="btnTabPasses"
+          class="admin-nav-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/60 transition active:scale-95 flex items-center gap-1.5">
           <span>🏷️</span>
           <span>จัดการบัตรผ่าน</span>
         </button>
-        <button onclick="switchAdminTab('tabQRCodes')" id="btnTabQRCodes" class="admin-nav-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/60 transition active:scale-95 flex items-center gap-1.5">
+        <button onclick="switchAdminTab('tabQRCodes')" id="btnTabQRCodes"
+          class="admin-nav-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/60 transition active:scale-95 flex items-center gap-1.5">
           <span>🔲</span>
           <span>QR Code บัตรผู้มาติดต่อ</span>
         </button>
-        <button onclick="switchAdminTab('tabSettings')" id="btnTabSettings" class="admin-nav-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/60 transition active:scale-95 flex items-center gap-1.5">
+        <button onclick="switchAdminTab('tabSettings')" id="btnTabSettings"
+          class="admin-nav-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/60 transition active:scale-95 flex items-center gap-1.5">
           <span>⚙️</span>
           <span>ตั้งค่าระบบ (Keys)</span>
         </button>
@@ -168,19 +204,25 @@
         </div>
 
         <!-- Logged-in Admin User Badge -->
-        <div id="headerAdminUserBadge" class="hidden flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200/80 rounded-xl text-xs text-blue-950">
+        <div id="headerAdminUserBadge"
+          class="hidden flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200/80 rounded-xl text-xs text-blue-950">
           <span class="text-sm">👤</span>
           <div class="flex flex-col text-left leading-tight">
             <span id="headerAdminUsername" class="font-extrabold text-blue-900">admin</span>
-            <span id="headerAdminEmail" class="text-[10px] text-blue-600 font-medium truncate max-w-[120px]">admin@vms.local</span>
+            <span id="headerAdminEmail"
+              class="text-[10px] text-blue-600 font-medium truncate max-w-[120px]">admin@vms.local</span>
           </div>
-          <button type="button" onclick="adminLogout()" class="ml-1 p-1 text-slate-400 hover:text-red-600 font-bold transition active:scale-95 cursor-pointer" title="ออกจากระบบ">
+          <button type="button" onclick="adminLogout()"
+            class="ml-1 p-1 text-slate-400 hover:text-red-600 font-bold transition active:scale-95 cursor-pointer"
+            title="ออกจากระบบ">
             🚪
           </button>
         </div>
 
         <!-- Open Guard View Button -->
-        <a id="linkGuardView" href="#" target="_blank" class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-xs transition active:scale-95" title="เปิดหน้าจอสำหรับเจ้าหน้าที่ รปภ. จุดตรวจ">
+        <a id="linkGuardView" href="#" target="_blank"
+          class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-xs transition active:scale-95"
+          title="เปิดหน้าจอสำหรับเจ้าหน้าที่ รปภ. จุดตรวจ">
           <span class="text-sm">📱</span>
           <span>เปิดหน้าจอ รปภ.</span>
         </a>
@@ -189,12 +231,18 @@
   </header>
 
   <!-- Mobile Quick Tab Bar -->
-  <div id="adminMobileNav" class="hidden md:hidden overflow-x-auto bg-white border-b border-slate-200 p-2 gap-1.5 no-print shadow-xs">
-    <button onclick="switchAdminTab('tabOverview')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white whitespace-nowrap">📊 ภาพรวม</button>
-    <button onclick="switchAdminTab('tabLogs')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 whitespace-nowrap">📋 ข้อมูลทั้งหมด</button>
-    <button onclick="switchAdminTab('tabPasses')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 whitespace-nowrap">🏷️ จัดการบัตร</button>
-    <button onclick="switchAdminTab('tabQRCodes')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 whitespace-nowrap">🔲 QR Code บัตร</button>
-    <button onclick="switchAdminTab('tabSettings')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 whitespace-nowrap">⚙️ ตั้งค่าระบบ</button>
+  <div id="adminMobileNav"
+    class="hidden md:hidden overflow-x-auto bg-white border-b border-slate-200 p-2 gap-1.5 no-print shadow-xs">
+    <button onclick="switchAdminTab('tabOverview')"
+      class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white whitespace-nowrap">📊 ภาพรวม</button>
+    <button onclick="switchAdminTab('tabLogs')"
+      class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 whitespace-nowrap">📋 ข้อมูลทั้งหมด</button>
+    <button onclick="switchAdminTab('tabPasses')"
+      class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 whitespace-nowrap">🏷️ จัดการบัตร</button>
+    <button onclick="switchAdminTab('tabQRCodes')"
+      class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 whitespace-nowrap">🔲 QR Code บัตร</button>
+    <button onclick="switchAdminTab('tabSettings')"
+      class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 whitespace-nowrap">⚙️ ตั้งค่าระบบ</button>
   </div>
 
   <!-- ========================================== -->
@@ -202,14 +250,15 @@
   <!-- ========================================== -->
   <div id="adminLoginContainer" class="flex-1 flex items-center justify-center p-4 sm:p-6 my-auto">
     <div class="bg-white rounded-3xl shadow-2xl border border-slate-200/80 p-6 sm:p-8 max-w-md w-full space-y-6">
-      
+
       <!-- Brand Header -->
       <div class="text-center space-y-2">
-        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-blue-500 text-white flex items-center justify-center text-3xl mx-auto shadow-lg shadow-blue-500/25">
+        <div
+          class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-blue-500 text-white flex items-center justify-center text-3xl mx-auto shadow-lg shadow-blue-500/25">
           🛡️
         </div>
         <h2 class="text-xl font-black text-slate-900 tracking-tight">เข้าสู่ระบบ Dashboard ผู้ดูแล</h2>
-        <p class="text-xs text-slate-500">ระบบบริหารจัดการและบันทึกผู้มาติดต่อ (VMS Control Center)</p>
+        <p class="text-xs text-slate-500">ระบบบริหารจัดการและบันทึกผู้มาติดต่อ (RX VMS Control Center)</p>
       </div>
 
       <!-- Form 1: Sign In -->
@@ -218,7 +267,8 @@
           <label class="text-xs font-bold text-slate-700">ชื่อผู้ใช้งาน (Username) *</label>
           <div class="relative mt-1">
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">👤</span>
-            <input type="text" id="loginUsername" required placeholder="admin" value="admin" class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+            <input type="text" id="loginUsername" required placeholder="admin" value="admin"
+              class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
           </div>
         </div>
 
@@ -226,18 +276,21 @@
           <label class="text-xs font-bold text-slate-700">รหัสผ่าน (Password) *</label>
           <div class="relative mt-1">
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">🔒</span>
-            <input type="password" id="loginPassword" required placeholder="••••••••" value="1234" class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+            <input type="password" id="loginPassword" required placeholder="••••••••" value="1234"
+              class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
           </div>
         </div>
 
-        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 transition cursor-pointer">
+        <button type="submit"
+          class="w-full py-3 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 transition cursor-pointer">
           <span>เข้าสู่ระบบ</span>
           <span>➔</span>
         </button>
 
         <div class="p-3 bg-blue-50/70 border border-blue-200/80 rounded-xl text-[11px] text-blue-900 space-y-0.5">
           <p class="font-bold">💡 บัญชีเริ่มต้นสำหรับเข้าสู่ระบบ:</p>
-          <p>• Username: <code class="font-bold text-blue-950 font-mono">admin</code> | Password: <code class="font-bold text-blue-950 font-mono">1234</code></p>
+          <p>• Username: <code class="font-bold text-blue-950 font-mono">admin</code> | Password: <code
+              class="font-bold text-blue-950 font-mono">1234</code></p>
         </div>
       </form>
 
@@ -253,15 +306,17 @@
     <!-- TAB 1: OVERVIEW & REALTIME STATS (16:9)    -->
     <!-- ========================================== -->
     <div id="tabOverview" class="admin-tab space-y-6">
-      
+
       <!-- Top 4 KPI Stat Cards (Widescreen 4 Columns) -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        
+
         <!-- Card 1: Total Today -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-300 relative group overflow-hidden">
+        <div
+          class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-300 relative group overflow-hidden">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold uppercase tracking-wider text-slate-500">ผู้มาติดต่อวันนี้ทั้งหมด</span>
-            <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center text-lg shadow-xs group-hover:scale-105 transition">
+            <div
+              class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center text-lg shadow-xs group-hover:scale-105 transition">
               👥
             </div>
           </div>
@@ -276,10 +331,12 @@
         </div>
 
         <!-- Card 2: Active Inside -->
-        <div class="bg-white rounded-3xl p-6 border border-emerald-200/80 shadow-xs hover:shadow-md transition-all duration-300 relative group overflow-hidden">
+        <div
+          class="bg-white rounded-3xl p-6 border border-emerald-200/80 shadow-xs hover:shadow-md transition-all duration-300 relative group overflow-hidden">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">กำลังอยู่ในพื้นที่ขณะนี้</span>
-            <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center text-lg shadow-xs group-hover:scale-105 transition">
+            <div
+              class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center text-lg shadow-xs group-hover:scale-105 transition">
               <span class="animate-pulse">🟢</span>
             </div>
           </div>
@@ -294,10 +351,12 @@
         </div>
 
         <!-- Card 3: Checked Out Today -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-300 relative group overflow-hidden">
+        <div
+          class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-300 relative group overflow-hidden">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold uppercase tracking-wider text-slate-500">ออกจากพื้นที่แล้ววันนี้</span>
-            <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center text-lg shadow-xs group-hover:scale-105 transition">
+            <div
+              class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center text-lg shadow-xs group-hover:scale-105 transition">
               🚪
             </div>
           </div>
@@ -312,10 +371,12 @@
         </div>
 
         <!-- Card 4: Available Passes -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-300 relative group overflow-hidden">
+        <div
+          class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-300 relative group overflow-hidden">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold uppercase tracking-wider text-slate-500">บัตรผู้มาติดต่อที่ว่างอยู่</span>
-            <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center text-lg shadow-xs group-hover:scale-105 transition">
+            <div
+              class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center text-lg shadow-xs group-hover:scale-105 transition">
               🏷️
             </div>
           </div>
@@ -337,15 +398,18 @@
           <div>
             <div class="flex items-center gap-2.5">
               <span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
-              <h3 class="font-extrabold text-base lg:text-lg text-slate-900">ผู้มาติดต่อที่ยังอยู่ในพื้นที่แบบ Realtime</h3>
-              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <h3 class="font-extrabold text-base lg:text-lg text-slate-900">ผู้มาติดต่อที่ยังอยู่ในพื้นที่แบบ Realtime
+              </h3>
+              <span
+                class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                 ACTIVE MONITOR
               </span>
             </div>
             <p class="text-xs text-slate-500 mt-0.5">รายการผู้ที่ยังไม่ได้ทำรายการคืนบัตรผ่านจุดตรวจรักษาความปลอดภัย</p>
           </div>
-          
-          <button onclick="loadAdminStatsAndOverview()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition active:scale-95 border border-slate-200">
+
+          <button onclick="loadAdminStatsAndOverview()"
+            class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition active:scale-95 border border-slate-200">
             <span>🔄</span> รีเฟรชข้อมูล
           </button>
         </div>
@@ -382,26 +446,31 @@
     <!-- TAB 2: ALL VISITOR LOGS (FULL DETAILS)    -->
     <!-- ========================================== -->
     <div id="tabLogs" class="admin-tab hidden space-y-5">
-      
+
       <!-- Filter & Action Bar -->
-      <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
+      <div
+        class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]">
-          
+
           <!-- Search input -->
           <div class="relative flex-1 min-w-[200px]">
             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-sm">🔍</span>
-            <input type="text" id="logSearchQuery" onkeyup="filterLogsTable()" placeholder="ค้นหาชื่อ, เลขบัตร 13 หลัก, ทะเบียนรถ, บ้านเลขที่..." class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+            <input type="text" id="logSearchQuery" onkeyup="filterLogsTable()"
+              placeholder="ค้นหาชื่อ, เลขบัตร 13 หลัก, ทะเบียนรถ, บ้านเลขที่..."
+              class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
           </div>
 
           <!-- Status Filter -->
-          <select id="logStatusFilter" onchange="filterLogsTable()" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+          <select id="logStatusFilter" onchange="filterLogsTable()"
+            class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
             <option value="ALL">สถานะทั้งหมด</option>
             <option value="CHECKED_IN">🟢 กำลังอยู่ในพื้นที่</option>
             <option value="CHECKED_OUT">🚪 ออกแล้ว</option>
           </select>
 
           <!-- Year Filter -->
-          <select id="logYearFilter" onchange="filterLogsTable()" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+          <select id="logYearFilter" onchange="filterLogsTable()"
+            class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
             <option value="ALL">ปีทั้งหมด</option>
             <option value="2026">2026</option>
             <option value="2025">2025</option>
@@ -409,7 +478,8 @@
           </select>
 
           <!-- Month Filter -->
-          <select id="logMonthFilter" onchange="filterLogsTable()" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+          <select id="logMonthFilter" onchange="filterLogsTable()"
+            class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
             <option value="ALL">ทุกเดือน</option>
             <option value="1">ม.ค. (มกราคม)</option>
             <option value="2">ก.พ. (กุมภาพันธ์)</option>
@@ -426,7 +496,8 @@
           </select>
 
           <!-- Date Preset Range Filter -->
-          <select id="logDateFilter" onchange="fetchAdminLogs()" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+          <select id="logDateFilter" onchange="fetchAdminLogs()"
+            class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
             <option value="TODAY">วันนี้</option>
             <option value="LAST_7_DAYS">ย้อนหลัง 7 วัน</option>
             <option value="THIS_MONTH">เดือนนี้</option>
@@ -435,15 +506,19 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <button onclick="triggerManualFullBackup()" class="px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-emerald-200 transition active:scale-95 cursor-pointer" title="ซิงค์ข้อมูลทั้งหมดลง Google Sheet">
+          <button onclick="triggerManualFullBackup()"
+            class="px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-emerald-200 transition active:scale-95 cursor-pointer"
+            title="ซิงค์ข้อมูลทั้งหมดลง Google Sheet">
             <span>📊</span>
             <span>ซิงค์ Google Sheet</span>
           </button>
-          <button onclick="exportLogsToCSV()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer">
+          <button onclick="exportLogsToCSV()"
+            class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer">
             <span>📥</span>
             <span>ส่งออก CSV</span>
           </button>
-          <button onclick="fetchAdminLogs()" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-slate-200 transition active:scale-95 cursor-pointer">
+          <button onclick="fetchAdminLogs()"
+            class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-slate-200 transition active:scale-95 cursor-pointer">
             <span>🔄</span>
             <span>รีเฟรช</span>
           </button>
@@ -472,13 +547,16 @@
               </tr>
             </thead>
             <tbody id="logsTableBody" class="divide-y divide-slate-100 text-slate-700 bg-white">
-              <tr><td colspan="13" class="text-center py-12 text-slate-400">กำลังโหลดรายการผู้มาติดต่อ...</td></tr>
+              <tr>
+                <td colspan="13" class="text-center py-12 text-slate-400">กำลังโหลดรายการผู้มาติดต่อ...</td>
+              </tr>
             </tbody>
           </table>
         </div>
-        
+
         <!-- Pagination & Summary Footer -->
-        <div class="px-5 py-3.5 bg-slate-50/80 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600 font-medium">
+        <div
+          class="px-5 py-3.5 bg-slate-50/80 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600 font-medium">
           <div class="flex items-center gap-2">
             <span id="logsCountLabel">แสดงทั้งหมด 0 รายการ</span>
             <span class="text-slate-300">•</span>
@@ -487,12 +565,14 @@
 
           <!-- Pagination Controls (Max 12 items/page) -->
           <div class="flex items-center gap-1.5" id="logsPaginationControls">
-            <button type="button" id="btnPrevLogsPage" onclick="prevLogsPage()" class="px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed shadow-xs flex items-center gap-1 cursor-pointer">
+            <button type="button" id="btnPrevLogsPage" onclick="prevLogsPage()"
+              class="px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed shadow-xs flex items-center gap-1 cursor-pointer">
               <span>◀</span>
               <span>ก่อนหน้า</span>
             </button>
             <div id="logsPageNumbers" class="flex items-center gap-1"></div>
-            <button type="button" id="btnNextLogsPage" onclick="nextLogsPage()" class="px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed shadow-xs flex items-center gap-1 cursor-pointer">
+            <button type="button" id="btnNextLogsPage" onclick="nextLogsPage()"
+              class="px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed shadow-xs flex items-center gap-1 cursor-pointer">
               <span>ถัดไป</span>
               <span>▶</span>
             </button>
@@ -507,20 +587,25 @@
     <!-- TAB 3: PASSES MANAGEMENT (GRID VIEW)      -->
     <!-- ========================================== -->
     <div id="tabPasses" class="admin-tab hidden space-y-6">
-      
+
       <!-- Top Action Bar -->
-      <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-wrap justify-between items-center gap-4">
+      <div
+        class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-wrap justify-between items-center gap-4">
         <div>
-          <h3 class="font-extrabold text-base lg:text-lg text-slate-900">จัดการบัตรผู้มาติดต่อ (QR Passes Management)</h3>
-          <p class="text-xs text-slate-500 mt-0.5">ตรวจสอบสถานะการถือครองบัตร หรือกดปลดล็อคบัตรกรณีผู้มาติดต่อทำบัตรสูญหาย</p>
+          <h3 class="font-extrabold text-base lg:text-lg text-slate-900">จัดการบัตรผู้มาติดต่อ (QR Passes Management)
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">ตรวจสอบสถานะการถือครองบัตร
+            หรือกดปลดล็อคบัตรกรณีผู้มาติดต่อทำบัตรสูญหาย</p>
         </div>
 
         <div class="flex items-center gap-2">
-          <button onclick="openAddPassModal()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95">
+          <button onclick="openAddPassModal()"
+            class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95">
             <span>➕</span>
             <span>เพิ่มบัตรใหม่ในระบบ</span>
           </button>
-          <button onclick="fetchAdminPasses()" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-slate-200 transition active:scale-95">
+          <button onclick="fetchAdminPasses()"
+            class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-slate-200 transition active:scale-95">
             <span>🔄</span>
             <span>รีเฟรช</span>
           </button>
@@ -538,13 +623,16 @@
     <!-- TAB 4: QR CODE VISITOR PASSES GENERATOR    -->
     <!-- ========================================== -->
     <div id="tabQRCodes" class="admin-tab hidden space-y-6">
-      
+
       <!-- Top Action & Filter Bar (Hidden on Print) -->
-      <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-wrap justify-between items-center gap-4 no-print">
+      <div
+        class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-wrap justify-between items-center gap-4 no-print">
         <div>
           <div class="flex items-center gap-2">
             <h3 class="font-extrabold text-base lg:text-lg text-slate-900">🔲 จัดทำและพิมพ์ QR Code บัตรผู้มาติดต่อ</h3>
-            <span class="text-[11px] bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full font-bold border border-blue-200">VISITOR BADGES</span>
+            <span
+              class="text-[11px] bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full font-bold border border-blue-200">VISITOR
+              BADGES</span>
           </div>
           <p class="text-xs text-slate-500 mt-1">
             ดาวน์โหลดไฟล์รูปภาพ QR Code คมชัดสูง คัดลอกลิงก์สำหรับนำไปใช้ต่อ หรือสั่งพิมพ์บัตรคล้องคอได้ทันที
@@ -553,16 +641,19 @@
 
         <div class="flex flex-wrap items-center gap-2.5">
           <!-- Search box -->
-          <input type="text" id="qrSearchInput" onkeyup="filterQRCards()" placeholder="ค้นหารหัสบัตร เช่น V-001..." class="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
-          
+          <input type="text" id="qrSearchInput" onkeyup="filterQRCards()" placeholder="ค้นหารหัสบัตร เช่น V-001..."
+            class="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+
           <!-- Print All Button -->
-          <button onclick="window.print()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95">
+          <button onclick="window.print()"
+            class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95">
             <span>🖨️</span>
             <span>สั่งพิมพ์บัตรทั้งหมด (A4)</span>
           </button>
 
           <!-- Refresh -->
-          <button onclick="loadAdminQRCodes()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-slate-200 transition active:scale-95">
+          <button onclick="loadAdminQRCodes()"
+            class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-slate-200 transition active:scale-95">
             <span>🔄</span>
             <span>รีเฟรช</span>
           </button>
@@ -570,35 +661,43 @@
       </div>
 
       <!-- Quick Custom QR Code Generator Box (Hidden on Print) -->
-      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs no-print flex flex-wrap items-center justify-between gap-3">
+      <div
+        class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs no-print flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-2 text-xs text-slate-700">
           <span class="text-lg">✨</span>
           <span class="font-bold text-slate-900">สร้าง QR Code พิเศษทันที:</span>
           <span class="text-slate-500">(เช่น บัตร VIP-01, STAFF-01 หรือรหัสเฉพาะกิจ)</span>
         </div>
         <div class="flex items-center gap-2 flex-1 max-w-md">
-          <input type="text" id="customQrInput" placeholder="พิมพ์รหัส เช่น VIP-001" class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 outline-none uppercase font-mono font-bold focus:border-blue-500">
-          <button onclick="generateCustomQrModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold whitespace-nowrap transition active:scale-95 shadow-sm">
+          <input type="text" id="customQrInput" placeholder="พิมพ์รหัส เช่น VIP-001"
+            class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 outline-none uppercase font-mono font-bold focus:border-blue-500">
+          <button onclick="generateCustomQrModal()"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold whitespace-nowrap transition active:scale-95 shadow-sm">
             สร้างและดาวน์โหลด
           </button>
         </div>
       </div>
 
       <!-- Instructions & Tip Box (Hidden on Print) -->
-      <div class="bg-blue-50/70 border border-blue-200 rounded-2xl p-4 text-xs text-blue-900 flex items-start gap-3 no-print">
+      <div
+        class="bg-blue-50/70 border border-blue-200 rounded-2xl p-4 text-xs text-blue-900 flex items-start gap-3 no-print">
         <span class="text-xl shrink-0">💡</span>
         <div class="space-y-1">
           <p class="font-bold text-blue-950">คำแนะนำสำหรับการใช้งานและการพิมพ์:</p>
           <p class="text-blue-800/90 leading-relaxed text-[11px]">
-            • <b>กดปุ่ม "📥 โหลดรูป":</b> จะได้ไฟล์ภาพ PNG คมชัดสูง สำหรับนำไปตกแต่งหรือปริ้นท์สติกเกอร์แปะบนบัตรแข็ง<br>
-            • <b>กดปุ่ม "🔗 ลิงก์รูป":</b> จะคัดลอก URL ของรูปภาพ QR Code สามารถนำไปวางใน Google Docs, Word หรือระบบอื่นๆ ได้ทันที<br>
-            • <b>กดปุ่ม "🖨️ สั่งพิมพ์บัตรทั้งหมด":</b> ระบบจะจัดเรียงบัตรลงบนหน้ากระดาษ A4 พร้อมเส้นประสำหรับตัดใส่ซองบัตรคล้องคอมาตรฐานทันที
+            • <b>กดปุ่ม "📥 โหลดรูป":</b> จะได้ไฟล์ภาพ PNG คมชัดสูง
+            สำหรับนำไปตกแต่งหรือปริ้นท์สติกเกอร์แปะบนบัตรแข็ง<br>
+            • <b>กดปุ่ม "🔗 ลิงก์รูป":</b> จะคัดลอก URL ของรูปภาพ QR Code สามารถนำไปวางใน Google Docs, Word
+            หรือระบบอื่นๆ ได้ทันที<br>
+            • <b>กดปุ่ม "🖨️ สั่งพิมพ์บัตรทั้งหมด":</b> ระบบจะจัดเรียงบัตรลงบนหน้ากระดาษ A4
+            พร้อมเส้นประสำหรับตัดใส่ซองบัตรคล้องคอมาตรฐานทันที
           </p>
         </div>
       </div>
 
       <!-- QR Cards Grid Container (Print Area) -->
-      <div id="qrCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 print-area">
+      <div id="qrCardsGrid"
+        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 print-area">
         <div class="col-span-full text-center py-12 text-slate-400 text-xs">กำลังสร้าง QR Code สำหรับบัตรทุกใบ...</div>
       </div>
 
@@ -610,7 +709,7 @@
     <!-- ========================================== -->
     <div id="tabSettings" class="admin-tab hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+
         <!-- Left Column: Database & AI API Settings -->
         <div class="bg-white rounded-3xl p-6 lg:p-8 border border-slate-200/80 shadow-xs space-y-5">
           <div class="border-b border-slate-100 pb-3">
@@ -619,59 +718,73 @@
               การตั้งค่าฐานข้อมูลและ AI OCR (API Keys)
             </h2>
             <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-              กำหนดค่าการเชื่อมต่อฐานข้อมูล Supabase และ Google Gemini AI สำหรับอ่านบัตรประชาชน ข้อมูลนี้ถูกเก็บรักษาอย่างปลอดภัยบน GAS Script Properties
+              กำหนดค่าการเชื่อมต่อฐานข้อมูล Supabase และ Google Gemini AI สำหรับอ่านบัตรประชาชน
+              ข้อมูลนี้ถูกเก็บรักษาอย่างปลอดภัยบน GAS Script Properties
             </p>
           </div>
 
           <div class="space-y-4">
             <div>
               <label class="text-xs font-bold text-slate-700">Supabase Project URL</label>
-              <input type="text" id="adminSupabaseUrl" placeholder="https://xshzgwlgwrsoyvmbdbuk.supabase.co" class="w-full mt-1.5 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono transition">
+              <input type="text" id="adminSupabaseUrl" placeholder="https://xshzgwlgwrsoyvmbdbuk.supabase.co"
+                class="w-full mt-1.5 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono transition">
               <p class="text-[11px] text-slate-400 mt-1">
-                ⚠️ ต้องเป็น Web URL ลงท้ายด้วย <code class="text-emerald-600 font-bold">.supabase.co</code> (ห้ามใส่ API Key ในช่องนี้)
+                ⚠️ ต้องเป็น Web URL ลงท้ายด้วย <code class="text-emerald-600 font-bold">.supabase.co</code> (ห้ามใส่ API
+                Key ในช่องนี้)
               </p>
             </div>
 
             <div>
               <label class="text-xs font-bold text-slate-700">Supabase anon / service_role key</label>
-              <input type="password" id="adminSupabaseKey" placeholder="eyJhbGciOi... หรือ sb_publishable_..." class="w-full mt-1.5 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono transition">
+              <input type="password" id="adminSupabaseKey" placeholder="eyJhbGciOi... หรือ sb_publishable_..."
+                class="w-full mt-1.5 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono transition">
               <p class="text-[11px] text-slate-400 mt-1">
-                API Key ของ Supabase (ขึ้นต้นด้วย <code class="text-blue-600 font-semibold">eyJ...</code> หรือ <code class="text-blue-600 font-semibold">sb_publishable_...</code>)
+                API Key ของ Supabase (ขึ้นต้นด้วย <code class="text-blue-600 font-semibold">eyJ...</code> หรือ <code
+                  class="text-blue-600 font-semibold">sb_publishable_...</code>)
               </p>
             </div>
 
             <div>
               <label class="text-xs font-bold text-slate-700">Google Gemini API Key (สำหรับ OCR บัตรประชาชน)</label>
-              <input type="password" id="adminGeminiKey" placeholder="AIzaSy..." class="w-full mt-1.5 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+              <input type="password" id="adminGeminiKey" placeholder="AIzaSy..."
+                class="w-full mt-1.5 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
               <p class="text-[11px] text-blue-600 mt-1">
-                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-blue-800">คลิกที่นี่เพื่อขอคีย์ฟรีจาก Google AI Studio</a>
+                <a href="https://aistudio.google.com/app/apikey" target="_blank"
+                  class="underline hover:text-blue-800">คลิกที่นี่เพื่อขอคีย์ฟรีจาก Google AI Studio</a>
               </p>
             </div>
 
             <div>
               <div class="flex items-center justify-between">
                 <label class="text-xs font-bold text-slate-700">Google Apps Script Web App URL</label>
-                <button type="button" onclick="autoDetectWebAppUrl()" class="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-bold transition">
+                <button type="button" onclick="autoDetectWebAppUrl()"
+                  class="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-bold transition">
                   🔍 ตรวจจับ URL อัตโนมัติ
                 </button>
               </div>
-              <input type="text" id="adminWebAppUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full mt-1.5 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono transition">
+              <input type="text" id="adminWebAppUrl" placeholder="https://script.google.com/macros/s/.../exec"
+                class="w-full mt-1.5 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono transition">
               <p class="text-[11px] text-slate-400 mt-1">
-                URL หลักของระบบ ใช้สร้างลิงก์สำหรับผู้รับการติดต่อเซ็นชื่อ และ QR Code บนบัตรคล้องคอ (ต้องขึ้นต้นด้วย <code class="text-blue-600 font-mono">https://script.google.com/macros/s/</code>)
+                URL หลักของระบบ ใช้สร้างลิงก์สำหรับผู้รับการติดต่อเซ็นชื่อ และ QR Code บนบัตรคล้องคอ (ต้องขึ้นต้นด้วย
+                <code class="text-blue-600 font-mono">https://script.google.com/macros/s/</code>)
               </p>
             </div>
 
             <!-- Active detected model banner -->
-            <div id="detectedModelBanner" class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between text-xs">
+            <div id="detectedModelBanner"
+              class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between text-xs">
               <span class="text-slate-600 font-medium">โมเดล AI ที่พร้อมใช้งาน:</span>
-              <span id="detectedModelName" class="font-mono text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">กำลังตรวจสอบ...</span>
+              <span id="detectedModelName"
+                class="font-mono text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">กำลังตรวจสอบ...</span>
             </div>
 
             <div class="grid grid-cols-2 gap-2.5 pt-2">
-              <button type="button" onclick="adminTestSupabase()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs border border-slate-200 transition active:scale-95">
+              <button type="button" onclick="adminTestSupabase()"
+                class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs border border-slate-200 transition active:scale-95">
                 ⚡ ทดสอบ Supabase
               </button>
-              <button type="button" onclick="adminTestGemini()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs border border-slate-200 transition active:scale-95">
+              <button type="button" onclick="adminTestGemini()"
+                class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs border border-slate-200 transition active:scale-95">
                 ⚡ ทดสอบ Gemini AI
               </button>
             </div>
@@ -679,7 +792,8 @@
         </div>
 
         <!-- Right Column: Security Policy & Scanner Gateway -->
-        <div class="bg-white rounded-3xl p-6 lg:p-8 border border-slate-200/80 shadow-xs space-y-5 flex flex-col justify-between">
+        <div
+          class="bg-white rounded-3xl p-6 lg:p-8 border border-slate-200/80 shadow-xs space-y-5 flex flex-col justify-between">
           <div class="space-y-5">
             <div class="border-b border-slate-100 pb-3">
               <h2 class="font-extrabold text-base lg:text-lg text-slate-900 flex items-center gap-2">
@@ -692,22 +806,29 @@
             </div>
 
             <!-- Host Signature Requirement Toggle Card (Prominent & Clear) -->
-            <div class="p-5 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-slate-50 border-2 border-blue-200/90 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+            <div
+              class="p-5 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-slate-50 border-2 border-blue-200/90 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
               <div class="space-y-1">
                 <div class="flex items-center gap-2.5 flex-wrap">
                   <span class="text-xl">✍️</span>
-                  <span class="text-sm font-extrabold text-slate-900">บังคับผู้รับการติดต่อเซ็นชื่อรับรองก่อนให้ออก</span>
-                  <span id="adminRequireSignatureBadge" class="text-xs font-bold px-3 py-1 rounded-full border shadow-xs transition-all"></span>
+                  <span
+                    class="text-sm font-extrabold text-slate-900">บังคับผู้รับการติดต่อเซ็นชื่อรับรองก่อนให้ออก</span>
+                  <span id="adminRequireSignatureBadge"
+                    class="text-xs font-bold px-3 py-1 rounded-full border shadow-xs transition-all"></span>
                 </div>
                 <p class="text-xs text-slate-600 leading-relaxed max-w-xl">
-                  หากเปิดใช้งาน ผู้รับการติดต่อ (เจ้าของบ้าน/แผนก) จะต้องสแกน QR บนบัตรเพื่อเซ็นชื่อรับรองในมือถือก่อน หากยังไม่ได้เซ็น รปภ. จะไม่สามารถสแกนคืนบัตรได้
+                  หากเปิดใช้งาน ผู้รับการติดต่อ (เจ้าของบ้าน/แผนก) จะต้องสแกน QR บนบัตรเพื่อเซ็นชื่อรับรองในมือถือก่อน
+                  หากยังไม่ได้เซ็น รปภ. จะไม่สามารถสแกนคืนบัตรได้
                 </p>
               </div>
               <div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
                 <label class="relative inline-flex items-center cursor-pointer select-none">
                   <input type="checkbox" id="adminRequireSignature" onchange="updateAdminSigBadge()" class="sr-only">
-                  <div id="adminRequireSignatureTrack" class="w-16 h-9 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer shadow-inner bg-slate-300">
-                    <div id="adminRequireSignatureThumb" class="w-7 h-7 bg-white rounded-full shadow-md transform transition-transform duration-200 ease-in-out translate-x-0"></div>
+                  <div id="adminRequireSignatureTrack"
+                    class="w-16 h-9 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer shadow-inner bg-slate-300">
+                    <div id="adminRequireSignatureThumb"
+                      class="w-7 h-7 bg-white rounded-full shadow-md transform transition-transform duration-200 ease-in-out translate-x-0">
+                    </div>
                   </div>
                 </label>
               </div>
@@ -716,15 +837,19 @@
             <!-- GitHub Scanner Gateway URL Setting -->
             <div>
               <label class="text-xs font-bold text-slate-700">URL หน้าสแกนเนอร์ของ GitHub (Scanner Gateway)</label>
-              <input type="url" id="adminScannerUrl" placeholder="https://jirasaksa-max.github.io/vms-scanner/scanner.html" class="w-full mt-1.5 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono transition">
+              <input type="url" id="adminScannerUrl"
+                placeholder="https://jirasaksa-max.github.io/vms-scanner/scanner.html"
+                class="w-full mt-1.5 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono transition">
               <p class="text-[11px] text-slate-400 mt-1">
-                URL บน GitHub Pages ที่นำไฟล์ <code class="text-blue-600 font-semibold">scanner.html</code> ไปเปิดใช้งาน เพื่อให้ รปภ. เปิดกล้องสด 60 FPS ได้
+                URL บน GitHub Pages ที่นำไฟล์ <code class="text-blue-600 font-semibold">scanner.html</code> ไปเปิดใช้งาน
+                เพื่อให้ รปภ. เปิดกล้องสด 60 FPS ได้
               </p>
             </div>
           </div>
 
           <div class="pt-4 border-t border-slate-100">
-            <button type="button" onclick="saveAdminConfig()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-bold rounded-xl shadow-md shadow-blue-500/20 text-xs transition flex items-center justify-center gap-2">
+            <button type="button" onclick="saveAdminConfig()"
+              class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-bold rounded-xl shadow-md shadow-blue-500/20 text-xs transition flex items-center justify-center gap-2">
               <span>💾</span>
               <span>บันทึกการตั้งค่าระบบทั้งหมด</span>
             </button>
@@ -737,25 +862,31 @@
       <div class="bg-white rounded-3xl p-6 lg:p-8 border border-slate-200/80 shadow-xs space-y-5">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center text-2xl shrink-0">
+            <div
+              class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center text-2xl shrink-0">
               📊
             </div>
             <div>
               <h2 class="font-extrabold text-base lg:text-lg text-slate-900 flex items-center gap-2">
                 <span>สำรองฐานข้อมูลลง Google Sheet อัตโนมัติ</span>
-                <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">Live Auto-Sync</span>
+                <span
+                  class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">Live
+                  Auto-Sync</span>
               </h2>
               <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                ระบบซิงค์ข้อมูลผู้มาติดต่อ (Logs), หมายเลขบัตรผ่าน (Passes), และรายชื่อแผนก (Departments) ลง Google Spreadsheet แบบอัตโนมัติ
+                ระบบซิงค์ข้อมูลผู้มาติดต่อ (Logs), หมายเลขบัตรผ่าน (Passes), และรายชื่อแผนก (Departments) ลง Google
+                Spreadsheet แบบอัตโนมัติ
               </p>
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0">
-            <button type="button" onclick="openBackupGoogleSheet()" class="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold rounded-xl text-xs border border-emerald-200 transition active:scale-95 flex items-center gap-1.5 cursor-pointer">
+            <button type="button" onclick="openBackupGoogleSheet()"
+              class="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold rounded-xl text-xs border border-emerald-200 transition active:scale-95 flex items-center gap-1.5 cursor-pointer">
               <span>📑</span>
               <span>เปิดดู Google Sheet</span>
             </button>
-            <button type="button" onclick="triggerManualFullBackup()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-sm shadow-emerald-600/30 transition active:scale-95 flex items-center gap-1.5 cursor-pointer">
+            <button type="button" onclick="triggerManualFullBackup()"
+              class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-sm shadow-emerald-600/30 transition active:scale-95 flex items-center gap-1.5 cursor-pointer">
               <span>🔄</span>
               <span>ซิงค์ข้อมูลทั้งหมดเดี๋ยวนี้ (Full Sync)</span>
             </button>
@@ -770,13 +901,19 @@
                 <span class="text-[11px] text-slate-400 font-normal">แผ่นงานปลายทางสำหรับสำรองข้อมูล</span>
               </label>
               <div class="mt-1.5 flex gap-2">
-                <input type="text" id="adminBackupSheetId" placeholder="1cgrCQHYeGWnZpcaw11yHzVE_FncPQ4WCLTU8IOr33W4" value="1cgrCQHYeGWnZpcaw11yHzVE_FncPQ4WCLTU8IOr33W4" class="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-mono transition">
-                <button type="button" onclick="saveAdminBackupSheetId()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs border border-slate-200 transition active:scale-95 shrink-0">
+                <input type="text" id="adminBackupSheetId" placeholder="1cgrCQHYeGWnZpcaw11yHzVE_FncPQ4WCLTU8IOr33W4"
+                  value="1cgrCQHYeGWnZpcaw11yHzVE_FncPQ4WCLTU8IOr33W4"
+                  class="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-mono transition">
+                <button type="button" onclick="saveAdminBackupSheetId()"
+                  class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs border border-slate-200 transition active:scale-95 shrink-0">
                   💾 บันทึก ID
                 </button>
               </div>
               <p class="text-[11px] text-slate-400 mt-1">
-                💡 ลิงก์ชีตปัจจุบัน: <a id="adminBackupSheetLink" href="https://docs.google.com/spreadsheets/d/1cgrCQHYeGWnZpcaw11yHzVE_FncPQ4WCLTU8IOr33W4/edit" target="_blank" class="text-emerald-700 underline font-mono break-all hover:text-emerald-900">https://docs.google.com/spreadsheets/d/1cgrCQHYeGWnZpcaw11yHzVE_FncPQ4WCLTU8IOr33W4/edit</a>
+                💡 ลิงก์ชีตปัจจุบัน: <a id="adminBackupSheetLink"
+                  href="https://docs.google.com/spreadsheets/d/1cgrCQHYeGWnZpcaw11yHzVE_FncPQ4WCLTU8IOr33W4/edit"
+                  target="_blank"
+                  class="text-emerald-700 underline font-mono break-all hover:text-emerald-900">https://docs.google.com/spreadsheets/d/1cgrCQHYeGWnZpcaw11yHzVE_FncPQ4WCLTU8IOr33W4/edit</a>
               </p>
             </div>
 
@@ -832,7 +969,8 @@
 
             <div class="pt-2 border-t border-slate-200/80">
               <div class="text-[11px] text-slate-500 leading-tight">
-                🔒 ข้อมูลจะถูกเขียนลง Google Sheet ปลายทางแบบ Real-time ข้อมูลสำรองจะปลอดภัยและสามารถใช้ทำสรุปรายงาน Pivot Table ได้ทันที
+                🔒 ข้อมูลจะถูกเขียนลง Google Sheet ปลายทางแบบ Real-time ข้อมูลสำรองจะปลอดภัยและสามารถใช้ทำสรุปรายงาน
+                Pivot Table ได้ทันที
               </div>
             </div>
           </div>
@@ -846,31 +984,39 @@
   <!-- ========================================== -->
   <!-- MODAL: รายละเอียดผู้มาติดต่อฉบับสมบูรณ์ (VIEW DETAILS) -->
   <!-- ========================================== -->
-  <div id="visitorDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4" onclick="closeVisitorDetailModal()">
-    <div class="bg-white rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl border border-slate-200 p-5 sm:p-6 space-y-4 max-h-[90vh] flex flex-col" onclick="event.stopPropagation()">
-      
+  <div id="visitorDetailModal"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3 sm:p-4"
+    onclick="closeVisitorDetailModal()">
+    <div
+      class="bg-white rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl border border-slate-200 p-5 sm:p-6 space-y-4 max-h-[90vh] flex flex-col"
+      onclick="event.stopPropagation()">
+
       <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <div class="flex items-center gap-2.5">
-          <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-700 font-mono font-black text-lg border border-blue-200 flex items-center justify-center" id="detailPassCode">
+          <div
+            class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-700 font-mono font-black text-lg border border-blue-200 flex items-center justify-center"
+            id="detailPassCode">
             V-001
           </div>
           <div>
-            <h4 class="font-extrabold text-base text-slate-900 leading-tight" id="detailVisitorName">ชื่อผู้มาติดต่อ</h4>
+            <h4 class="font-extrabold text-base text-slate-900 leading-tight" id="detailVisitorName">ชื่อผู้มาติดต่อ
+            </h4>
             <div class="text-xs text-slate-500 font-medium hidden" id="detailVisitorNameEn"></div>
             <div class="flex items-center gap-2 mt-0.5" id="detailStatusBadgeContainer">
               <!-- status badge -->
             </div>
           </div>
         </div>
-        <button onclick="closeVisitorDetailModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold flex items-center justify-center text-sm transition cursor-pointer">
+        <button onclick="closeVisitorDetailModal()"
+          class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold flex items-center justify-center text-sm transition cursor-pointer">
           ✕
         </button>
       </div>
 
       <!-- Modal Body (Scrollable) -->
       <div class="overflow-y-auto flex-1 space-y-4 pr-1 text-xs text-slate-700">
-        
+
         <!-- Images Grid: Card Photo & Signature -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <!-- ID Card Photo -->
@@ -878,8 +1024,12 @@
             <span class="text-[11px] font-bold text-slate-600 flex items-center gap-1">
               <span>📷</span> <span>รูปถ่ายบัตรประชาชน</span>
             </span>
-            <div id="detailPhotoContainer" class="w-full flex items-center justify-center min-h-[140px] bg-white rounded-xl border border-slate-200 overflow-hidden">
-              <img id="detailPhotoImg" src="" alt="ภาพบัตร" class="max-h-36 object-contain cursor-pointer rounded-lg hover:opacity-90 transition" onerror="handleImageLoadError(this)" onclick="openPhotoModal(this.src, document.getElementById('detailVisitorName').innerText)">
+            <div id="detailPhotoContainer"
+              class="w-full flex items-center justify-center min-h-[140px] bg-white rounded-xl border border-slate-200 overflow-hidden">
+              <img id="detailPhotoImg" src="" alt="ภาพบัตร"
+                class="max-h-36 object-contain cursor-pointer rounded-lg hover:opacity-90 transition"
+                onerror="handleImageLoadError(this)"
+                onclick="openPhotoModal(this.src, document.getElementById('detailVisitorName').innerText)">
               <span id="detailNoPhotoText" class="text-slate-400 text-xs hidden">ไม่มีรูปถ่ายบัตร</span>
             </div>
           </div>
@@ -889,8 +1039,12 @@
             <span class="text-[11px] font-bold text-slate-600 flex items-center gap-1">
               <span>✍️</span> <span>ลายเซ็นรับรอง (Host Signature)</span>
             </span>
-            <div id="detailSigContainer" class="w-full flex items-center justify-center min-h-[140px] bg-white rounded-xl border border-slate-200 p-2 overflow-hidden">
-              <img id="detailSigImg" src="" alt="ลายเซ็น" class="max-h-36 object-contain cursor-pointer rounded-lg hover:opacity-90 transition" onerror="handleImageLoadError(this)" onclick="openPhotoModal(this.src, 'ลายเซ็นรับรอง - ' + document.getElementById('detailVisitorName').innerText)">
+            <div id="detailSigContainer"
+              class="w-full flex items-center justify-center min-h-[140px] bg-white rounded-xl border border-slate-200 p-2 overflow-hidden">
+              <img id="detailSigImg" src="" alt="ลายเซ็น"
+                class="max-h-36 object-contain cursor-pointer rounded-lg hover:opacity-90 transition"
+                onerror="handleImageLoadError(this)"
+                onclick="openPhotoModal(this.src, 'ลายเซ็นรับรอง - ' + document.getElementById('detailVisitorName').innerText)">
               <span id="detailNoSigText" class="text-slate-400 text-xs hidden">ยังไม่มีลายเซ็นรับรอง</span>
             </div>
             <div id="detailSigMeta" class="text-[10px] text-slate-500 text-center font-medium"></div>
@@ -899,7 +1053,7 @@
 
         <!-- Info Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          
+
           <!-- Box 1: Visitor Identity -->
           <div class="p-3.5 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-2">
             <div class="font-extrabold text-xs text-slate-900 flex items-center gap-1.5 pb-1 border-b border-slate-200">
@@ -929,7 +1083,8 @@
             <div class="space-y-1.5 text-xs">
               <div class="flex justify-between">
                 <span class="text-slate-400">จุดที่มาติดต่อ:</span>
-                <span class="font-extrabold text-amber-900 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200" id="detailDepartment">-</span>
+                <span class="font-extrabold text-amber-900 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200"
+                  id="detailDepartment">-</span>
               </div>
               <div class="flex justify-between">
                 <span class="text-slate-400">ทะเบียนรถ:</span>
@@ -946,11 +1101,13 @@
 
         <!-- Box 3: Timestamps & Durations -->
         <div class="p-3.5 bg-blue-50/50 rounded-2xl border border-blue-200/80 space-y-2">
-          <div class="font-extrabold text-xs text-blue-950 flex items-center justify-between pb-1 border-b border-blue-200/60">
+          <div
+            class="font-extrabold text-xs text-blue-950 flex items-center justify-between pb-1 border-b border-blue-200/60">
             <div class="flex items-center gap-1.5">
               <span>⏱️</span> <span>บันทึกเวลาและการปฏิบัติงาน</span>
             </div>
-            <span class="text-[11px] font-bold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-md" id="detailDurationLabel">0 นาที</span>
+            <span class="text-[11px] font-bold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-md"
+              id="detailDurationLabel">0 นาที</span>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <div class="flex justify-between">
@@ -973,7 +1130,8 @@
       <!-- Modal Footer -->
       <div class="flex justify-between items-center pt-2 border-t border-slate-100">
         <span class="text-[10px] text-slate-400">VMS Admin Audit Log</span>
-        <button onclick="closeVisitorDetailModal()" class="px-5 py-2 bg-slate-900 hover:bg-black text-white font-bold rounded-xl text-xs transition cursor-pointer active:scale-95 shadow-xs">
+        <button onclick="closeVisitorDetailModal()"
+          class="px-5 py-2 bg-slate-900 hover:bg-black text-white font-bold rounded-xl text-xs transition cursor-pointer active:scale-95 shadow-xs">
           ปิดหน้าต่าง
         </button>
       </div>
@@ -984,17 +1142,22 @@
   <!-- ========================================== -->
   <!-- MODAL: ขยายดูรูปถ่ายบัตร ปชช.              -->
   <!-- ========================================== -->
-  <div id="photoModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" onclick="closePhotoModal()">
-    <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200 p-5 space-y-4" onclick="event.stopPropagation()">
+  <div id="photoModal"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4"
+    onclick="closePhotoModal()">
+    <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200 p-5 space-y-4"
+      onclick="event.stopPropagation()">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
         <h4 class="font-bold text-sm text-slate-900" id="photoModalTitle">รูปถ่ายบัตรประชาชน</h4>
-        <button onclick="closePhotoModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none">&times;</button>
+        <button onclick="closePhotoModal()"
+          class="text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none">&times;</button>
       </div>
       <div class="flex justify-center bg-slate-50 rounded-2xl p-3 max-h-[70vh] overflow-hidden border border-slate-100">
         <img id="photoModalImg" src="" alt="ภาพบัตร" class="object-contain max-h-[65vh] rounded-xl shadow-xs">
       </div>
       <div class="text-right">
-        <button onclick="closePhotoModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition">
+        <button onclick="closePhotoModal()"
+          class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition">
           ปิดหน้าต่าง
         </button>
       </div>
@@ -1005,35 +1168,42 @@
   <!-- ========================================== -->
   <!-- MODAL: เพิ่มชุดบัตรใหม่                    -->
   <!-- ========================================== -->
-  <div id="addPassModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+  <div id="addPassModal"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border border-slate-200 p-6 space-y-4">
       <div class="flex justify-between items-center border-b border-slate-100 pb-2">
         <h4 class="font-extrabold text-sm text-slate-900">เพิ่มชุดบัตรผู้มาติดต่อ</h4>
-        <button onclick="closeAddPassModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none">&times;</button>
+        <button onclick="closeAddPassModal()"
+          class="text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none">&times;</button>
       </div>
 
       <div class="space-y-3.5 text-xs">
         <div>
           <label class="text-slate-600 font-semibold">คำนำหน้ารหัส (Prefix)</label>
-          <input type="text" id="newPassPrefix" value="V-" class="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:border-blue-500 outline-none">
+          <input type="text" id="newPassPrefix" value="V-"
+            class="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:border-blue-500 outline-none">
         </div>
         <div class="grid grid-cols-2 gap-2.5">
           <div>
             <label class="text-slate-600 font-semibold">ตั้งแต่หมายเลข</label>
-            <input type="number" id="newPassStart" value="31" class="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:border-blue-500 outline-none">
+            <input type="number" id="newPassStart" value="31"
+              class="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:border-blue-500 outline-none">
           </div>
           <div>
             <label class="text-slate-600 font-semibold">ถึงหมายเลข</label>
-            <input type="number" id="newPassEnd" value="50" class="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:border-blue-500 outline-none">
+            <input type="number" id="newPassEnd" value="50"
+              class="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono font-bold focus:border-blue-500 outline-none">
           </div>
         </div>
       </div>
 
       <div class="flex gap-2 pt-2 border-t border-slate-100">
-        <button onclick="closeAddPassModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition">
+        <button onclick="closeAddPassModal()"
+          class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition">
           ยกเลิก
         </button>
-        <button onclick="submitAddNewPasses()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-sm transition active:scale-95">
+        <button onclick="submitAddNewPasses()"
+          class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-sm transition active:scale-95">
           ยืนยันเพิ่มบัตร
         </button>
       </div>
@@ -1089,7 +1259,7 @@
       let session = null;
       try {
         session = JSON.parse(sessionStorage.getItem('VMS_ADMIN_SESSION') || 'null');
-      } catch (e) {}
+      } catch (e) { }
 
       const loginView = document.getElementById('adminLoginContainer');
       const appView = document.getElementById('adminAppContainer');
@@ -1451,7 +1621,7 @@
         const globalIndex = startIndex + pageIndex;
         const inDate = new Date(item.check_in_at);
         const inStr = inDate.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' (' + inDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) + ')';
-        
+
         let outStr = '-';
         if (item.check_out_at) {
           const outDate = new Date(item.check_out_at);
@@ -1459,7 +1629,7 @@
         }
 
         const isInside = (item.status === 'CHECKED_IN');
-        const statusBadge = isInside 
+        const statusBadge = isInside
           ? '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full text-[10px] font-bold">🟢 อยู่ในพื้นที่</span>'
           : '<span class="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded-full text-[10px] font-medium">🚪 ออกแล้ว</span>';
 
@@ -1542,7 +1712,7 @@
       const container = document.getElementById('logsPageNumbers');
       if (!container) return;
       let pillsHtml = '';
-      
+
       const maxButtons = 5;
       let startP = Math.max(1, currentLogsPage - 2);
       let endP = Math.min(totalPages, startP + maxButtons - 1);
@@ -1590,7 +1760,7 @@
     function openVisitorDetailModal(item) {
       document.getElementById('detailPassCode').innerText = item.pass_code || '-';
       const fullName = `${item.title || ''} ${item.first_name || ''} ${item.last_name || ''}`.trim() || 'ผู้มาติดต่อ';
-      
+
       let nameEn = item.visitor_name_en || item.name_en || '';
       if (!nameEn && item.guard_in_notes) {
         const m = item.guard_in_notes.match(/\[EN:\s*([^\]]+)\]/i);
@@ -1617,7 +1787,7 @@
 
       const isInside = (item.status === 'CHECKED_IN');
       const badgeContainer = document.getElementById('detailStatusBadgeContainer');
-      badgeContainer.innerHTML = isInside 
+      badgeContainer.innerHTML = isInside
         ? '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full text-xs font-bold">🟢 อยู่ในพื้นที่</span>'
         : '<span class="bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-0.5 rounded-full text-xs font-semibold">🚪 เช็คเอาท์ออกแล้ว</span>';
 
@@ -1956,7 +2126,7 @@
             document.getElementById('adminWebAppUrl').value = res.webappUrl;
             localStorage.setItem('VMS_BASE_WEBAPP_URL', res.webappUrl);
           }
-          
+
           document.getElementById('adminRequireSignature').checked = !!res.requireHostSignature;
           updateAdminSigBadge();
 
@@ -2645,4 +2815,5 @@
     }
   </script>
 </body>
+
 </html>
