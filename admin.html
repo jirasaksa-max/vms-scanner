@@ -212,16 +212,6 @@
         <p class="text-xs text-slate-500">ระบบบริหารจัดการและบันทึกผู้มาติดต่อ (VMS Control Center)</p>
       </div>
 
-      <!-- Auth Mode Tabs (Sign In / Register) -->
-      <div class="flex p-1 bg-slate-100 rounded-2xl border border-slate-200">
-        <button type="button" id="btnAuthTabSignIn" onclick="switchLoginTab('signin')" class="flex-1 py-2 text-xs font-bold rounded-xl bg-white text-blue-700 shadow-sm border border-slate-200 transition">
-          เข้าสู่ระบบ (Sign In)
-        </button>
-        <button type="button" id="btnAuthTabRegister" onclick="switchLoginTab('register')" class="flex-1 py-2 text-xs font-semibold rounded-xl text-slate-500 hover:text-slate-800 transition">
-          ลงทะเบียนผู้ดูแลใหม่
-        </button>
-      </div>
-
       <!-- Form 1: Sign In -->
       <form id="formAdminSignIn" onsubmit="handleAdminLogin(event)" class="space-y-4">
         <div>
@@ -249,42 +239,6 @@
           <p class="font-bold">💡 บัญชีเริ่มต้นสำหรับเข้าสู่ระบบ:</p>
           <p>• Username: <code class="font-bold text-blue-950 font-mono">admin</code> | Password: <code class="font-bold text-blue-950 font-mono">1234</code></p>
         </div>
-      </form>
-
-      <!-- Form 2: Register (Username, Password, Email) -->
-      <form id="formAdminRegister" onsubmit="handleAdminRegister(event)" class="space-y-4 hidden">
-        <div>
-          <label class="text-xs font-bold text-slate-700">กำหนดชื่อผู้ใช้ (Username) *</label>
-          <div class="relative mt-1">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">👤</span>
-            <input type="text" id="regUsername" required placeholder="เช่น supervisor01" class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
-          </div>
-        </div>
-
-        <div>
-          <label class="text-xs font-bold text-slate-700">กำหนดรหัสผ่าน (Password) *</label>
-          <div class="relative mt-1">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">🔒</span>
-            <input type="password" id="regPassword" required placeholder="อย่างน้อย 4 ตัวอักษร" class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
-          </div>
-        </div>
-
-        <div>
-          <label class="text-xs font-bold text-slate-700">อีเมลผู้ดูแล (E-mail) *</label>
-          <div class="relative mt-1">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">✉️</span>
-            <input type="email" id="regEmail" required placeholder="supervisor@example.com" class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
-          </div>
-        </div>
-
-        <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20 transition cursor-pointer">
-          <span>➕</span>
-          <span>ลงทะเบียนและบันทึกผู้ดูแล</span>
-        </button>
-
-        <p class="text-[11px] text-slate-400 text-center">
-          ข้อมูลจะถูกจัดเก็บบนฐานข้อมูลระบบอย่างปลอดภัย
-        </p>
       </form>
 
     </div>
@@ -1278,21 +1232,7 @@
 
     function switchLoginTab(mode) {
       const signinForm = document.getElementById('formAdminSignIn');
-      const registerForm = document.getElementById('formAdminRegister');
-      const btnTabIn = document.getElementById('btnAuthTabSignIn');
-      const btnTabReg = document.getElementById('btnAuthTabRegister');
-
-      if (mode === 'signin') {
-        signinForm.classList.remove('hidden');
-        registerForm.classList.add('hidden');
-        btnTabIn.className = 'flex-1 py-2 text-xs font-bold rounded-xl bg-white text-blue-700 shadow-sm border border-slate-200 transition';
-        btnTabReg.className = 'flex-1 py-2 text-xs font-semibold rounded-xl text-slate-500 hover:text-slate-800 transition';
-      } else {
-        signinForm.classList.add('hidden');
-        registerForm.classList.remove('hidden');
-        btnTabReg.className = 'flex-1 py-2 text-xs font-bold rounded-xl bg-white text-blue-700 shadow-sm border border-slate-200 transition';
-        btnTabIn.className = 'flex-1 py-2 text-xs font-semibold rounded-xl text-slate-500 hover:text-slate-800 transition';
-      }
+      if (signinForm) signinForm.classList.remove('hidden');
     }
 
     function startLiveClock() {
