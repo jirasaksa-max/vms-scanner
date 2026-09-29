@@ -160,21 +160,16 @@
     <!-- TOP SEGMENTED CONTROL TABS                 -->
     <!-- ========================================== -->
     <div class="p-2.5 bg-white border-b border-slate-200/80 sticky top-[57px] z-30 shadow-xs">
-      <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200/70 text-xs font-bold">
+      <div class="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200/70 text-xs font-bold">
         <button type="button" onclick="switchTab('tabCheckIn')" id="segCheckIn"
-          class="py-2 px-1 rounded-xl transition flex items-center justify-center gap-1 bg-white text-blue-600 shadow-xs">
+          class="py-2 px-1 rounded-xl transition flex items-center justify-center gap-1.5 bg-white text-blue-600 shadow-xs">
           <span>🟢</span>
-          <span>ลงทะเบียน</span>
-        </button>
-        <button type="button" onclick="switchTab('tabCheckOut')" id="segCheckOut"
-          class="py-2 px-1 rounded-xl transition flex items-center justify-center gap-1 text-slate-600 hover:text-slate-900">
-          <span>🔴</span>
-          <span>คืนบัตร</span>
+          <span>ลงทะเบียนผู้มาติดต่อ</span>
         </button>
         <button type="button" onclick="switchTab('tabActive')" id="segActive"
-          class="py-2 px-1 rounded-xl transition flex items-center justify-center gap-1 text-slate-600 hover:text-slate-900">
+          class="py-2 px-1 rounded-xl transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900">
           <span>📋</span>
-          <span>บัตรค้าง</span>
+          <span>ผู้มาติดต่อในพื้นที่ (บัตรค้าง)</span>
         </button>
       </div>
     </div>
@@ -249,18 +244,11 @@
             <input type="text" id="inPassCode" placeholder="ระบุบัตร เช่น V-001"
               class="w-full px-3 py-3 bg-blue-50/50 border-2 border-blue-300 rounded-2xl text-2xl font-black text-blue-800 text-center tracking-widest outline-none focus:border-blue-600 uppercase font-mono shadow-inner transition placeholder:text-blue-300 placeholder:text-lg">
 
-            <div class="grid grid-cols-2 gap-2">
-              <button type="button" onclick="openGitHubScanner('inPassCode')"
-                class="w-full py-2.5 px-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-1.5 font-bold shadow-xs transition active:scale-95 text-xs cursor-pointer">
-                <span class="text-sm">📷</span>
-                <span>สแกนกล้อง</span>
-              </button>
-              <button type="button" onclick="openQuickPassPickerModal('inPassCode')"
-                class="w-full py-2.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl flex items-center justify-center gap-1.5 font-bold shadow-xs transition active:scale-95 text-xs cursor-pointer">
-                <span class="text-sm">🔢</span>
-                <span>เลือกเลขบัตร</span>
-              </button>
-            </div>
+            <button type="button" onclick="openQuickPassPickerModal('inPassCode')"
+              class="w-full py-2.5 px-3 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white rounded-xl flex items-center justify-center gap-2 font-bold shadow-xs transition text-xs cursor-pointer">
+              <span class="text-sm">🔢</span>
+              <span>เลือกหมายเลขบัตรผู้มาติดต่อ</span>
+            </button>
           </div>
 
           <!-- 3. ตัวเลือกเสริม: ถ่ายภาพด้วยกล้อง (ซ่อนเป็นค่าเริ่มต้น มีปุ่มกดเปิด) -->
@@ -275,27 +263,44 @@
             </button>
 
             <div id="cameraCaptureWrapper" class="hidden mt-2 space-y-1.5">
+              <!-- Native file input with direct camera capture -->
               <input type="file" id="idCardFileInput" accept="image/*" capture="environment" class="hidden"
                 onchange="handleIdCardPhoto(event)">
 
-              <div onclick="triggerIdCardCamera()"
-                class="border-2 border-dashed border-blue-200 hover:border-blue-400 bg-blue-50/20 rounded-2xl p-3 text-center cursor-pointer transition active:scale-98">
-                <div id="cardPlaceholder" class="space-y-1">
+              <div
+                class="border-2 border-dashed border-blue-200 hover:border-blue-400 bg-blue-50/20 rounded-2xl p-3.5 text-center transition">
+                <div id="cardPlaceholder" class="space-y-2">
                   <div
-                    class="w-9 h-9 rounded-xl bg-white border border-blue-100 flex items-center justify-center text-base shadow-xs mx-auto text-blue-600">
+                    class="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-lg shadow-sm mx-auto">
                     📷
                   </div>
-                  <div class="font-extrabold text-xs text-blue-900">แตะเพื่อถ่ายรูปบัตรประชาชน</div>
+                  <div class="font-extrabold text-xs text-blue-900">ถ่ายรูปบัตรประชาชน</div>
                   <div class="text-[10px] text-slate-400">ระบบ AI จะอ่านชื่อและเลขบัตร 13 หลักอัตโนมัติ</div>
+                  <div class="pt-1 flex items-center justify-center gap-2">
+                    <button type="button" onclick="openLiveCameraModal()"
+                      class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                      <span>📸</span> <span>เปิดกล้องถ่ายบัตร</span>
+                    </button>
+                    <label for="idCardFileInput"
+                      class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold rounded-xl transition flex items-center gap-1.5 cursor-pointer active:scale-95">
+                      <span>🖼️</span> <span>เลือกรูปจากเครื่อง</span>
+                    </label>
+                  </div>
                 </div>
                 <div id="cardPreviewContainer" class="hidden">
                   <img id="cardPreviewImg"
-                    class="rounded-xl border border-slate-300 shadow-xs max-h-32 mx-auto object-cover"
+                    class="rounded-xl border border-slate-300 shadow-xs max-h-36 mx-auto object-cover"
                     alt="Card Preview">
-                  <button type="button" onclick="event.stopPropagation(); triggerIdCardCamera();"
-                    class="mt-1.5 text-xs text-blue-600 font-bold hover:underline flex items-center justify-center gap-1 mx-auto cursor-pointer">
-                    <span>🔄</span> <span>ถ่ายภาพบัตรใหม่</span>
-                  </button>
+                  <div class="mt-2.5 flex items-center justify-center gap-2">
+                    <button type="button" onclick="openLiveCameraModal()"
+                      class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                      <span>📸</span> <span>ถ่ายภาพใหม่</span>
+                    </button>
+                    <label for="idCardFileInput"
+                      class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-xl text-xs font-medium transition cursor-pointer">
+                      <span>🖼️</span> <span>เปลี่ยนรูป</span>
+                    </label>
+                  </div>
                 </div>
               </div>
 
@@ -475,131 +480,29 @@
 
 
       <!-- ======================================== -->
-      <!-- TAB 2: คืนบัตร / ออก (CHECK-OUT)         -->
-      <!-- ======================================== -->
-      <div id="tabCheckOut" class="tab-content hidden space-y-3.5">
-
-        <!-- กล่องค้นหาบัตรเพื่อคืน -->
-        <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-xs space-y-3">
-          <div class="flex items-center gap-2 border-b border-slate-100 pb-2">
-            <span
-              class="w-6 h-6 rounded-lg bg-red-50 text-red-600 font-extrabold text-xs border border-red-200 flex items-center justify-center">🚪</span>
-            <h2 class="font-extrabold text-xs sm:text-sm text-slate-900">สแกนคืนบัตรผู้มาติดต่อ (Check-out)</h2>
-          </div>
-
-          <div class="space-y-2">
-            <input type="text" id="outPassCode" placeholder="ระบุบัตร เช่น V-001"
-              class="w-full px-3 py-3 bg-red-50/50 border-2 border-red-300 rounded-2xl text-2xl font-black text-red-800 text-center tracking-widest outline-none focus:border-red-500 uppercase font-mono shadow-inner transition placeholder:text-red-300 placeholder:text-lg">
-
-            <div class="grid grid-cols-2 gap-2">
-              <button type="button" onclick="openGitHubScanner('outPassCode', true)"
-                class="w-full py-2.5 px-2 bg-red-600 hover:bg-red-700 text-white rounded-xl flex items-center justify-center gap-1.5 font-bold shadow-xs transition active:scale-95 text-xs">
-                <span class="text-sm">📷</span>
-                <span>สแกนกล้อง</span>
-              </button>
-              <button type="button" onclick="openQuickPassPickerModal('outPassCode', true)"
-                class="w-full py-2.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl flex items-center justify-center gap-1.5 font-bold shadow-xs transition active:scale-95 text-xs">
-                <span class="text-sm">🔢</span>
-                <span>เลือกบัตรค้าง</span>
-              </button>
-            </div>
-          </div>
-
-          <button type="button" onclick="searchActiveVisitor()"
-            class="w-full py-2.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-xl transition active:scale-98 shadow-xs">
-            🔍 ค้นหารายการบัตรนี้
-          </button>
-        </div>
-
-        <!-- การ์ดแสดงผลตอน Check-out -->
-        <div id="checkOutDetailsCard"
-          class="hidden bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden space-y-0">
-          <!-- Card Header -->
-          <div class="bg-gradient-to-r from-red-600 to-rose-600 text-white px-4 py-3 flex justify-between items-center">
-            <div>
-              <span class="text-[9px] uppercase font-bold text-red-100 tracking-wider">RETURN VISITOR PASS</span>
-              <div class="font-extrabold text-lg font-mono" id="outDisplayPassCode">บัตร V-001</div>
-            </div>
-            <span
-              class="text-[11px] bg-black/20 text-white px-2.5 py-0.5 rounded-full font-mono font-bold border border-white/20"
-              id="outDisplayDuration">0 นาที</span>
-          </div>
-
-          <div class="p-3.5 space-y-2.5 text-xs">
-            <!-- ข้อมูลผู้มาติดต่อ (รูปถ่าย + ชื่อไทยหลัก + อังกฤษเสริม) -->
-            <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
-              <div class="relative shrink-0">
-                <img id="outDisplayPhoto" src="" alt="รูปผู้มาติดต่อ"
-                  class="w-12 h-14 rounded-lg object-cover border border-slate-300 bg-white shadow-2xs hidden">
-                <div id="outDisplayPhotoPlaceholder"
-                  class="w-12 h-14 rounded-lg bg-slate-200 border border-slate-300 flex items-center justify-center text-xl text-slate-400">
-                  👤</div>
-              </div>
-              <div class="min-w-0 flex-1 space-y-0.5">
-                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">ผู้มาติดต่อ (Visitor)</div>
-                <div class="font-black text-slate-900 text-sm truncate" id="outDisplayVisitorName">-</div>
-                <div class="text-[11px] text-slate-500 font-medium truncate hidden" id="outDisplayVisitorNameEn"></div>
-              </div>
-            </div>
-
-            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-              <span class="text-slate-500 font-medium">จุดที่ต้องการติดต่อ (Host):</span>
-              <span class="font-bold text-amber-900 truncate max-w-[180px]" id="outDisplayContact">-</span>
-            </div>
-            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-              <span class="text-slate-500 font-medium">วัตถุประสงค์:</span>
-              <span class="font-semibold text-slate-800 truncate" id="outDisplayPurpose">-</span>
-            </div>
-            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-              <span class="text-slate-500 font-medium">ทะเบียนรถ:</span>
-              <span class="font-mono font-bold text-slate-900" id="outDisplayPlate">-</span>
-            </div>
-            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-              <span class="text-slate-500 font-medium">เวลาที่เข้าพื้นที่:</span>
-              <span class="text-slate-700 font-semibold" id="outDisplayTime">-</span>
-            </div>
-
-            <!-- สถานะลายเซ็นผู้รับการติดต่อ (Host Signature required before checkout!) -->
-            <div id="outSignatureSection" class="p-3 rounded-xl border transition"></div>
-
-            <div>
-              <label class="text-[11px] font-bold text-slate-700">หมายเหตุตอนออก (ถ้ามี)</label>
-              <input type="text" id="outNotes" placeholder="เช่น คืนบัตรเรียบร้อย"
-                class="w-full mt-0.5 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-red-500 transition">
-            </div>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="p-3 bg-slate-50 border-t border-slate-100 flex gap-2">
-            <input type="hidden" id="outCurrentLogId">
-            <button type="button" onclick="cancelCheckOutView()"
-              class="w-1/3 py-2.5 bg-white hover:bg-slate-100 text-slate-600 font-bold rounded-xl text-xs border border-slate-200 transition cursor-pointer">
-              ยกเลิก
-            </button>
-            <button type="button" id="btnSubmitCheckOut" onclick="confirmCheckOut()"
-              class="w-2/3 py-2.5 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl shadow-md shadow-red-600/20 text-xs active:scale-95 transition cursor-pointer flex items-center justify-center gap-1">
-              <span>✅</span> <span>ยืนยันคืนบัตรและออก</span>
-            </button>
-          </div>
-        </div>
-
-      </div>
-
-
-      <!-- ======================================== -->
-      <!-- TAB 3: บัตรที่ค้างอยู่ (ACTIVE VISITORS) -->
+      <!-- TAB 2: บัตรที่ค้างอยู่ (ACTIVE VISITORS) -->
       <!-- ======================================== -->
       <div id="tabActive" class="tab-content hidden space-y-3">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-2">
           <div>
             <h2 class="font-extrabold text-sm text-slate-900">รายการบัตรที่ค้างอยู่ในพื้นที่</h2>
-            <p class="text-[11px] text-slate-500">แตะ "ออก" เพื่อทำรายการคืนบัตรได้ทันที</p>
+            <p class="text-[11px] text-slate-500">แตะ "ออก" ที่รายการบัตร หรือเลือกบัตรเพื่อคืน</p>
           </div>
-          <button onclick="loadActivePassesForGuard()"
-            class="p-2 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 rounded-xl text-xs font-bold shadow-xs transition active:scale-95 flex items-center gap-1">
-            <span>🔄</span> <span>รีเฟรช</span>
-          </button>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button type="button" onclick="openQuickPassPickerModal('outPassCode', true)"
+              class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold shadow-xs transition active:scale-95 flex items-center gap-1 cursor-pointer">
+              <span>🔢</span> <span>เลือกบัตรคืน</span>
+            </button>
+            <button type="button" onclick="loadActivePassesForGuard()"
+              class="p-2 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 rounded-xl text-xs font-bold shadow-xs transition active:scale-95 flex items-center gap-1 cursor-pointer"
+              title="รีเฟรช">
+              <span>🔄</span>
+            </button>
+          </div>
         </div>
+
+        <!-- Hidden input for outPassCode -->
+        <input type="hidden" id="outPassCode">
 
         <div id="activePassesList" class="space-y-2">
           <div class="text-center py-8 text-slate-400 text-xs font-medium">กำลังโหลดข้อมูล...</div>
@@ -608,6 +511,160 @@
 
     </main>
 
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- MODAL: สแกนคืนบัตรและออก (CHECK-OUT MODAL)  -->
+  <!-- ========================================== -->
+  <div id="checkOutModal"
+    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3">
+    <div id="checkOutDetailsCard"
+      class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden space-y-0 max-h-[90vh] flex flex-col">
+      <!-- Card Header -->
+      <div class="bg-gradient-to-r from-red-600 to-rose-600 text-white px-4 py-3 flex justify-between items-center shrink-0">
+        <div>
+          <span class="text-[9px] uppercase font-bold text-red-100 tracking-wider">RETURN VISITOR PASS</span>
+          <div class="font-extrabold text-lg font-mono" id="outDisplayPassCode">บัตร V-001</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span
+            class="text-[11px] bg-black/20 text-white px-2.5 py-0.5 rounded-full font-mono font-bold border border-white/20"
+            id="outDisplayDuration">0 นาที</span>
+          <button type="button" onclick="closeCheckOutModal()"
+            class="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 text-white font-bold flex items-center justify-center text-xs transition cursor-pointer">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <div class="p-3.5 space-y-2.5 text-xs overflow-y-auto flex-1">
+        <!-- ข้อมูลผู้มาติดต่อ (รูปถ่าย + ชื่อไทยหลัก + อังกฤษเสริม) -->
+        <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
+          <div class="relative shrink-0">
+            <img id="outDisplayPhoto" src="" alt="รูปผู้มาติดต่อ"
+              class="w-12 h-14 rounded-lg object-cover border border-slate-300 bg-white shadow-2xs hidden">
+            <div id="outDisplayPhotoPlaceholder"
+              class="w-12 h-14 rounded-lg bg-slate-200 border border-slate-300 flex items-center justify-center text-xl text-slate-400">
+              👤</div>
+          </div>
+          <div class="min-w-0 flex-1 space-y-0.5">
+            <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">ผู้มาติดต่อ (Visitor)</div>
+            <div class="font-black text-slate-900 text-sm truncate" id="outDisplayVisitorName">-</div>
+            <div class="text-[11px] text-slate-500 font-medium truncate hidden" id="outDisplayVisitorNameEn"></div>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+          <span class="text-slate-500 font-medium">จุดที่ต้องการติดต่อ (Host):</span>
+          <span class="font-bold text-amber-900 truncate max-w-[180px]" id="outDisplayContact">-</span>
+        </div>
+        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+          <span class="text-slate-500 font-medium">วัตถุประสงค์:</span>
+          <span class="font-semibold text-slate-800 truncate" id="outDisplayPurpose">-</span>
+        </div>
+        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+          <span class="text-slate-500 font-medium">ทะเบียนรถ:</span>
+          <span class="font-mono font-bold text-slate-900" id="outDisplayPlate">-</span>
+        </div>
+        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+          <span class="text-slate-500 font-medium">เวลาที่เข้าพื้นที่:</span>
+          <span class="text-slate-700 font-semibold" id="outDisplayTime">-</span>
+        </div>
+
+        <!-- สถานะลายเซ็นผู้รับการติดต่อ (Host Signature required before checkout!) -->
+        <div id="outSignatureSection" class="p-3 rounded-xl border transition"></div>
+
+        <div>
+          <label class="text-[11px] font-bold text-slate-700">หมายเหตุตอนออก (ถ้ามี)</label>
+          <input type="text" id="outNotes" placeholder="เช่น คืนบัตรเรียบร้อย"
+            class="w-full mt-0.5 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-red-500 transition">
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="p-3 bg-slate-50 border-t border-slate-100 flex gap-2 shrink-0">
+        <input type="hidden" id="outCurrentLogId">
+        <button type="button" onclick="closeCheckOutModal()"
+          class="w-1/3 py-2.5 bg-white hover:bg-slate-100 text-slate-600 font-bold rounded-xl text-xs border border-slate-200 transition cursor-pointer">
+          ยกเลิก
+        </button>
+        <button type="button" id="btnSubmitCheckOut" onclick="confirmCheckOut()"
+          class="w-2/3 py-2.5 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl shadow-md shadow-red-600/20 text-xs active:scale-95 transition cursor-pointer flex items-center justify-center gap-1">
+          <span>✅</span> <span>ยืนยันคืนบัตรและออก</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- MODAL: LIVE CAMERA CAPTURE (กล้องถ่ายบัตรสด) -->
+  <!-- ========================================== -->
+  <div id="liveCameraModal"
+    class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-between p-4">
+    <!-- Top Bar -->
+    <div class="w-full max-w-md flex items-center justify-between text-white py-2 z-10 shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">📷</span>
+        <div>
+          <h3 class="font-extrabold text-sm text-white">ถ่ายภาพบัตรประชาชน</h3>
+          <p class="text-[10px] text-slate-300">จัดบัตรให้อยู่ในกรอบเพื่อความคมชัด</p>
+        </div>
+      </div>
+      <button type="button" onclick="closeLiveCameraModal()"
+        class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white font-bold flex items-center justify-center text-sm transition cursor-pointer">
+        ✕
+      </button>
+    </div>
+
+    <!-- Video Feed Container with ID Card Frame Overlay -->
+    <div class="relative w-full max-w-md flex-1 flex items-center justify-center overflow-hidden rounded-2xl bg-black my-2 shadow-2xl">
+      <video id="liveCameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+
+      <!-- ID Card Overlay Guide Frame -->
+      <div class="absolute inset-0 pointer-events-none flex items-center justify-center p-4">
+        <div class="w-full aspect-[85.6/53.98] max-w-[340px] border-2 border-dashed border-emerald-400/90 rounded-2xl shadow-[0_0_0_9999px_rgba(0,0,0,0.55)] relative flex flex-col items-center justify-between p-3">
+          <!-- Corner brackets for card frame -->
+          <div class="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-emerald-400 rounded-tl-lg"></div>
+          <div class="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-emerald-400 rounded-tr-lg"></div>
+          <div class="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-emerald-400 rounded-bl-lg"></div>
+          <div class="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-emerald-400 rounded-br-lg"></div>
+
+          <div class="bg-black/70 backdrop-blur-xs text-white text-[11px] font-bold px-3 py-1 rounded-full border border-white/20">
+            วางบัตรประชาชนในกรอบ
+          </div>
+          <div class="text-[10px] text-white/90 bg-black/50 px-2 py-0.5 rounded-md">
+            ห้ามมีแสงสะท้อนทับตัวหนังสือ
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Controls -->
+    <div class="w-full max-w-md flex items-center justify-around py-3 z-10 shrink-0">
+      <!-- Switch Camera (Front/Back) -->
+      <button type="button" onclick="switchLiveCameraFacing()"
+        class="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center text-lg transition active:scale-95 cursor-pointer"
+        title="สลับกล้องหน้า/หลัง">
+        🔄
+      </button>
+
+      <!-- Shutter Capture Button -->
+      <button type="button" onclick="captureLiveCameraPhoto()"
+        class="w-18 h-18 rounded-full border-4 border-white bg-emerald-500 hover:bg-emerald-600 active:scale-90 flex items-center justify-center text-white shadow-xl transition cursor-pointer"
+        title="ถ่ายภาพ">
+        <div class="w-14 h-14 rounded-full bg-white/30 flex items-center justify-center text-2xl">
+          📸
+        </div>
+      </button>
+
+      <button type="button" onclick="closeLiveCameraModal()"
+        class="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center text-xs font-bold transition active:scale-95 cursor-pointer text-center"
+        title="ปิด">
+        ✕
+      </button>
+    </div>
   </div>
 
 
@@ -650,16 +707,19 @@
 
     // สลับแท็บผ่าน Segmented Control
     function switchTab(tabId) {
+      if (tabId === 'tabCheckOut') {
+        tabId = 'tabActive';
+      }
+
       document.querySelectorAll('.tab-content').forEach(function (el) {
         el.classList.add('hidden');
       });
       const activeEl = document.getElementById(tabId);
       if (activeEl) activeEl.classList.remove('hidden');
 
-      // รีเซ็ตปุ่มใน Segmented Control
+      // รีเซ็ตปุ่มใน Segmented Control (มี 2 แท็บ)
       const btns = [
         { id: 'segCheckIn', tab: 'tabCheckIn', activeClass: 'bg-white text-blue-600 shadow-xs' },
-        { id: 'segCheckOut', tab: 'tabCheckOut', activeClass: 'bg-white text-red-600 shadow-xs' },
         { id: 'segActive', tab: 'tabActive', activeClass: 'bg-white text-blue-600 shadow-xs' }
       ];
 
@@ -708,10 +768,122 @@
     }
 
     // ==========================================
-    // ถ่ายภาพบัตรประชาชน & Gemini OCR
+    // ถ่ายภาพบัตรประชาชน (Live Camera & Native) & Gemini OCR
     // ==========================================
+    let liveCameraStream = null;
+    let liveCameraFacingMode = 'environment';
+
+    async function openLiveCameraModal() {
+      const modal = document.getElementById('liveCameraModal');
+      const video = document.getElementById('liveCameraVideo');
+      if (!modal || !video) return;
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        Swal.fire({
+          icon: 'info',
+          title: 'เปิดกล้องจากอุปกรณ์',
+          text: 'กำลังเปิดกล้องถ่ายภาพ...',
+          timer: 1200,
+          showConfirmButton: false
+        });
+        document.getElementById('idCardFileInput').click();
+        return;
+      }
+
+      modal.classList.remove('hidden');
+
+      try {
+        await startLiveCameraStream();
+      } catch (err) {
+        console.error('Camera access error:', err);
+        try {
+          liveCameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          video.srcObject = liveCameraStream;
+          video.play();
+        } catch (fallbackErr) {
+          modal.classList.add('hidden');
+          Swal.fire({
+            icon: 'warning',
+            title: 'ไม่สามารถเปิดกล้องสดได้',
+            html: '<div class="text-xs text-left text-slate-600">โปรดอนุญาตสิทธิ์เข้าถึงกล้องในเบราว์เซอร์ หรือเลือกภาพจากเครื่องแทนครับ<br><br><span class="text-rose-600 font-mono text-[10px]">' + escapeHtml(err.message || String(err)) + '</span></div>',
+            confirmButtonText: 'ตกลง'
+          });
+        }
+      }
+    }
+
+    async function startLiveCameraStream() {
+      if (liveCameraStream) {
+        liveCameraStream.getTracks().forEach(function (t) { t.stop(); });
+        liveCameraStream = null;
+      }
+
+      const constraints = {
+        video: {
+          facingMode: { ideal: liveCameraFacingMode },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        },
+        audio: false
+      };
+
+      liveCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+      const video = document.getElementById('liveCameraVideo');
+      if (video) {
+        video.srcObject = liveCameraStream;
+        await video.play();
+      }
+    }
+
+    function switchLiveCameraFacing() {
+      liveCameraFacingMode = (liveCameraFacingMode === 'environment') ? 'user' : 'environment';
+      startLiveCameraStream().catch(function (err) {
+        console.warn('Switch camera error:', err);
+      });
+    }
+
+    function closeLiveCameraModal() {
+      const modal = document.getElementById('liveCameraModal');
+      if (modal) modal.classList.add('hidden');
+      if (liveCameraStream) {
+        liveCameraStream.getTracks().forEach(function (t) { t.stop(); });
+        liveCameraStream = null;
+      }
+    }
+
+    function captureLiveCameraPhoto() {
+      const video = document.getElementById('liveCameraVideo');
+      if (!video || !video.videoWidth) {
+        Swal.fire('กล้องยังไม่พร้อม', 'โปรดรอกล้องเริ่มทำงานสักครู่', 'info');
+        return;
+      }
+
+      const maxDim = 1200;
+      let w = video.videoWidth;
+      let h = video.videoHeight;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) {
+          h = Math.round((h * maxDim) / w);
+          w = maxDim;
+        } else {
+          w = Math.round((w * maxDim) / h);
+          h = maxDim;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, w, h);
+
+      const base64 = canvas.toDataURL('image/jpeg', 0.85);
+      closeLiveCameraModal();
+      processBase64Photo(base64);
+    }
+
     function triggerIdCardCamera() {
-      document.getElementById('idCardFileInput').click();
+      openLiveCameraModal();
     }
 
     function handleIdCardPhoto(event) {
@@ -741,18 +913,32 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, w, h);
 
-          compressedCardPhotoBase64 = canvas.toDataURL('image/jpeg', 0.82);
-
-          // Preview
-          document.getElementById('cardPlaceholder').classList.add('hidden');
-          document.getElementById('cardPreviewImg').src = compressedCardPhotoBase64;
-          document.getElementById('cardPreviewContainer').classList.remove('hidden');
-
-          extractIdCard(compressedCardPhotoBase64);
+          const base64 = canvas.toDataURL('image/jpeg', 0.82);
+          processBase64Photo(base64);
         };
         img.src = e.target.result;
       };
       reader.readAsDataURL(file);
+    }
+
+    function processBase64Photo(base64Data) {
+      compressedCardPhotoBase64 = base64Data;
+
+      // ถ้า wrapper กล้องซ่อนอยู่ ให้เปิดออก
+      const wrapper = document.getElementById('cameraCaptureWrapper');
+      if (wrapper && wrapper.classList.contains('hidden')) {
+        wrapper.classList.remove('hidden');
+        const icon = document.getElementById('btnToggleCameraIcon');
+        if (icon) icon.innerText = '▲';
+      }
+
+      // แสดง Preview
+      document.getElementById('cardPlaceholder').classList.add('hidden');
+      const previewImg = document.getElementById('cardPreviewImg');
+      if (previewImg) previewImg.src = base64Data;
+      document.getElementById('cardPreviewContainer').classList.remove('hidden');
+
+      extractIdCard(base64Data);
     }
 
     function extractIdCard(base64Data) {
@@ -1625,12 +1811,14 @@
     // ==========================================
     // ค้นหาบัตรเพื่อคืน (Check-out)
     // ==========================================
-    function searchActiveVisitor() {
-      const passCode = document.getElementById('outPassCode').value.trim();
+    function searchActiveVisitor(explicitPassCode) {
+      const outPassInput = document.getElementById('outPassCode');
+      const passCode = (explicitPassCode || (outPassInput && outPassInput.value) || '').trim();
       if (!passCode) {
-        Swal.fire('กรุณาระบุรหัสบัตร', 'โปรดระบุหรือสแกนบัตรที่ต้องการคืน', 'warning');
+        Swal.fire('กรุณาระบุรหัสบัตร', 'โปรดระบุหรือเลือกบัตรที่ต้องการคืน', 'warning');
         return;
       }
+      if (outPassInput) outPassInput.value = passCode;
 
       Swal.fire({
         title: 'กำลังตรวจสอบสถานะบัตร...',
@@ -1646,7 +1834,7 @@
           if (res && res.success && res.data) {
             displayCheckOutDetails(res.data);
           } else {
-            document.getElementById('checkOutDetailsCard').classList.add('hidden');
+            closeCheckOutModal();
             Swal.fire('ไม่พบข้อมูล', (res && res.message) || 'ไม่พบบันทึกการเข้าพื้นที่ของบัตรนี้ หรือบัตรถูกคืนไปแล้ว', 'warning');
           }
         })
@@ -1766,13 +1954,26 @@
         }
       }
 
-      document.getElementById('checkOutDetailsCard').classList.remove('hidden');
+      const modal = document.getElementById('checkOutModal');
+      if (modal) modal.classList.remove('hidden');
+      const detailsCard = document.getElementById('checkOutDetailsCard');
+      if (detailsCard) detailsCard.classList.remove('hidden');
+    }
+
+    function closeCheckOutModal() {
+      const modal = document.getElementById('checkOutModal');
+      if (modal) modal.classList.add('hidden');
+      const detailsCard = document.getElementById('checkOutDetailsCard');
+      if (detailsCard) detailsCard.classList.add('hidden');
+      const outPass = document.getElementById('outPassCode');
+      if (outPass) outPass.value = '';
+      const notes = document.getElementById('outNotes');
+      if (notes) notes.value = '';
+      currentCheckOutVisitorData = null;
     }
 
     function cancelCheckOutView() {
-      document.getElementById('checkOutDetailsCard').classList.add('hidden');
-      document.getElementById('outPassCode').value = '';
-      currentCheckOutVisitorData = null;
+      closeCheckOutModal();
     }
 
     function confirmCheckOut() {
@@ -1822,7 +2023,7 @@
                   timer: 1800,
                   showConfirmButton: false
                 });
-                cancelCheckOutView();
+                closeCheckOutModal();
                 loadActivePassesForGuard();
               } else {
                 Swal.fire('ไม่สำเร็จ', (res && res.message) || 'เกิดข้อผิดพลาดในการบันทึกเวลาออก', 'error');
@@ -1911,9 +2112,10 @@
     }
 
     function quickCheckOut(passCode) {
-      switchTab('tabCheckOut');
-      document.getElementById('outPassCode').value = passCode;
-      searchActiveVisitor();
+      if (document.getElementById('outPassCode')) {
+        document.getElementById('outPassCode').value = passCode;
+      }
+      searchActiveVisitor(passCode);
     }
 
     // ==========================================
@@ -2021,9 +2223,11 @@
         }
 
         if (tab === 'tabCheckOut') {
-          switchTab('tabCheckOut');
-          document.getElementById('outPassCode').value = pass;
-          setTimeout(searchActiveVisitor, 400);
+          switchTab('tabActive');
+          if (document.getElementById('outPassCode')) {
+            document.getElementById('outPassCode').value = pass;
+          }
+          setTimeout(function () { searchActiveVisitor(pass); }, 400);
         } else {
           switchTab('tabCheckIn');
           document.getElementById('inPassCode').value = pass;
