@@ -138,21 +138,37 @@ async function directGeminiOcr(base64Data, mimeType = 'image/jpeg') {
     }
   };
 
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${geminiKey}`;
+  const candidateModels = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-3.1-flash-lite'];
+  let lastError = null;
+  let resJson = null;
 
-  const response = await fetch(apiUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    if (errorText.includes('API_KEY_INVALID')) {
-      localStorage.removeItem('VMS_GEMINI_KEY');
-      throw new Error('Google แจ้งว่า API Key ไม่ถูกต้อง (API_KEY_INVALID) โปรดตรวจสอบคีย์อีกครั้ง');
+  for (const model of candidateModels) {
+    try {
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (response.ok) {
+        resJson = await response.json();
+        break;
+      } else {
+        const errorText = await response.text();
+        if (errorText.includes('API_KEY_INVALID')) {
+          localStorage.removeItem('VMS_GEMINI_KEY');
+          throw new Error('Google แจ้งว่า API Key ไม่ถูกต้อง (API_KEY_INVALID) โปรดตรวจสอบคีย์อีกครั้ง');
+        }
+        lastError = new Error(`Model ${model} (${response.status}): ${errorText}`);
+      }
+    } catch (e) {
+      lastError = e;
+      if (e.message && e.message.includes('API_KEY_INVALID')) throw e;
     }
-    throw new Error(`Gemini API Error (${response.status}): ${errorText}`);
+  }
+
+  if (!resJson) {
+    throw lastError || new Error('ไม่สามารถประมวลผล OCR ผ่าน Gemini AI ได้');
   }
 
   const resJson = await response.json();
@@ -216,13 +232,13 @@ if (typeof window !== 'undefined') {
                     base64Image: args[0],
                     mimeType: args[1] || 'image/jpeg'
                   });
-                } catch (gasErr) {
-                  // หากมีการระบุคีย์ไว้ในเครื่อง จึงจะใช้ directGeminiOcr
-                  if ((typeof VMS_CONFIG !== 'undefined' && VMS_CONFIG.GEMINI_API_KEY) || localStorage.getItem('VMS_GEMINI_KEY')) {
-                    res = await directGeminiOcr(args[0], args[1] || 'image/jpeg');
-                  } else {
-                    throw new Error('ไม่สามารถเชื่อมต่อ Google Apps Script Web App ได้ กรุณาตรวจสอบว่าได้ตั้งค่าสิทธิ์ใน Apps Script เป็น "Anyone / ทุกคน" หรือยัง');
+                  if (!res || !res.success) {
+                    throw new Error((res && res.message) ? res.message : 'GAS OCR unsuccessful');
                   }
+                } catch (gasErr) {
+                  console.warn('Google Apps Script Web App OCR unavailable or restricted (401), automatically falling back to client-side direct Gemini OCR...', gasErr);
+                  // ใช้งาน directGeminiOcr ทันที (จะตรวจจับ API Key หรือแสดงหน้าต่างให้กรอกคีย์อัตโนมัติ)
+                  res = await directGeminiOcr(args[0], args[1] || 'image/jpeg');
                 }
               }
 
@@ -622,6 +638,108 @@ if (typeof window !== 'undefined') {
                 }
                 await callSupabaseRest('visitor_passes', 'POST', newRows, { 'Prefer': 'resolution=ignore-duplicates' });
                 res = { success: true, message: `สร้างบัตร ${prefix}${start} ถึง ${prefix}${end} สำเร็จ` };
+              }
+
+              // 18. ดึงรายชื่อแผนก/จุดเข้าพบ (Visitor Departments)
+              else if (propKey === 'getVisitorDepartments') {
+                const defaultDepts = [
+                  'ฝ่ายบริหาร / ผู้บริหาร',
+                  'ฝ่ายทรัพยากรบุคคล (HR)',
+                  'ฝ่ายจัดซื้อและพัสดุ',
+                  'ฝ่ายบัญชีและการเงิน',
+                  'ฝ่ายขายและการตลาด',
+                  'ฝ่ายเทคโนโลยีสารสนเทศ (IT)',
+                  'ฝ่ายคลังสินค้า / สโตร์ / โลจิสติกส์',
+                  'ฝ่ายผลิตและซ่อมบำรุง',
+                  'แผนกต้อนรับ / ประชาสัมพันธ์',
+                  'งานรักษาความปลอดภัย / ก่อสร้าง',
+                  'บ้านพัก / ห้องชุด / ที่อยู่อาศัย'
+                ];
+                try {
+                  const data = await callSupabaseRest('visitor_departments?select=department&order=department.asc');
+                  if (data && Array.isArray(data) && data.length > 0) {
+                    res = { success: true, data: data.map(d => d.department || d.departments).filter(Boolean) };
+                  } else {
+                    res = { success: true, data: defaultDepts };
+                  }
+                } catch (e) {
+                  console.warn('Could not load visitor_departments, using defaults:', e);
+                  res = { success: true, data: defaultDepts };
+                }
+              }
+
+              // 19. เข้าสู่ระบบผู้ดูแลระบบ (Admin Login)
+              else if (propKey === 'adminLogin') {
+                const username = (args[0] || '').trim();
+                const password = (args[1] || '').trim();
+                if (!username || !password) {
+                  throw new Error('กรุณาระบุชื่อผู้ใช้และรหัสผ่าน');
+                }
+
+                let authenticatedUser = null;
+                // 1. ลองตรวจสอบจาก Supabase
+                try {
+                  const users = await callSupabaseRest(`admin_users?username=eq.${encodeURIComponent(username)}&password=eq.${encodeURIComponent(password)}&select=id,username,email`);
+                  if (users && users.length > 0) {
+                    authenticatedUser = { username: users[0].username, email: users[0].email };
+                  }
+                } catch (dbErr) {
+                  console.warn('Supabase admin_users query failed, falling back to local users:', dbErr);
+                }
+
+                // 2. ตรวจสอบใน LocalStorage หรือ Default Admin Account
+                if (!authenticatedUser) {
+                  let localUsers = [];
+                  try {
+                    localUsers = JSON.parse(localStorage.getItem('VMS_ADMIN_USERS_LOCAL') || '[]');
+                  } catch (e) {}
+
+                  const found = localUsers.find(u => u.username === username && u.password === password);
+                  if (found) {
+                    authenticatedUser = { username: found.username, email: found.email };
+                  } else if (username === 'admin' && (password === '1234' || password === 'admin')) {
+                    authenticatedUser = { username: 'admin', email: 'admin@vms.local' };
+                  }
+                }
+
+                if (authenticatedUser) {
+                  res = { success: true, user: authenticatedUser };
+                } else {
+                  res = { success: false, message: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' };
+                }
+              }
+
+              // 20. ลงทะเบียนผู้ดูแลระบบใหม่ (Admin Register)
+              else if (propKey === 'adminRegisterUser') {
+                const username = (args[0] || '').trim();
+                const password = (args[1] || '').trim();
+                const email = (args[2] || '').trim();
+
+                if (!username || !password || !email) {
+                  throw new Error('กรุณากรอกข้อมูลให้ครบถ้วน (ชื่อผู้ใช้, รหัสผ่าน, อีเมล)');
+                }
+
+                // บันทึกสำรองใน LocalStorage เสมอ
+                let localUsers = [];
+                try {
+                  localUsers = JSON.parse(localStorage.getItem('VMS_ADMIN_USERS_LOCAL') || '[]');
+                } catch (e) {}
+
+                if (localUsers.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+                  throw new Error('ชื่อผู้ใช้นี้มีอยู่ในระบบแล้ว');
+                }
+
+                localUsers.push({ username, password, email, created_at: new Date().toISOString() });
+                localStorage.setItem('VMS_ADMIN_USERS_LOCAL', JSON.stringify(localUsers));
+
+                // พยายามบันทึกลง Supabase
+                try {
+                  await callSupabaseRest('admin_users', 'POST', { username, password, email });
+                } catch (dbErr) {
+                  console.warn('Could not save to Supabase admin_users table:', dbErr);
+                }
+
+                res = { success: true, message: 'ลงทะเบียนผู้ดูแลระบบเรียบร้อยแล้ว', user: { username, email } };
               }
 
               if (handlers.success) handlers.success(res);
