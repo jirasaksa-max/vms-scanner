@@ -1467,6 +1467,21 @@
       return getCanonicalSignUrl('').split('?')[0].replace('sign.html', 'index.html');
     }
 
+    function formatDriveImageUrl(url) {
+      if (!url || typeof url !== 'string') return '';
+      if (url.startsWith('data:image')) return url;
+      if (url.includes('lh3.googleusercontent.com/d/')) return url;
+
+      let match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (!match) {
+        match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      }
+      if (match && match[1]) {
+        return `https://lh3.googleusercontent.com/d/${match[1]}`;
+      }
+      return url;
+    }
+
     function copyHostSignUrl(passCode) {
       const signUrl = getCanonicalSignUrl(passCode);
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -1622,7 +1637,7 @@
         if (v.signature_url) {
           driveLinkHtml = 
             '<div class="pt-0.5">' +
-              '<a href="' + escapeHtml(v.signature_url) + '" target="_blank" class="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 underline font-bold">' +
+              '<a href="' + escapeHtml(formatDriveImageUrl(v.signature_url)) + '" target="_blank" class="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 underline font-bold">' +
                 '<span>✍️</span> <span>เปิดดูภาพลายเซ็นใน Drive</span>' +
               '</a>' +
             '</div>';
