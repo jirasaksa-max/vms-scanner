@@ -136,7 +136,7 @@
       </div>
 
       <!-- Navigation Tabs (Capsule Bar) -->
-      <nav class="hidden md:flex items-center gap-1.5 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/70 shadow-inner">
+      <nav id="adminHeaderNav" class="hidden md:flex items-center gap-1.5 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/70 shadow-inner">
         <button onclick="switchAdminTab('tabOverview')" id="btnTabOverview" class="admin-nav-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-blue-600 shadow-sm border border-slate-200/60 transition active:scale-95 flex items-center gap-1.5">
           <span>📊</span>
           <span>ภาพรวม</span>
@@ -159,12 +159,24 @@
         </button>
       </nav>
 
-      <!-- Right Header Actions (Clock & Guard View Trigger) -->
+      <!-- Right Header Actions (Clock, User Badge & Guard View Trigger) -->
       <div class="flex items-center gap-3 shrink-0">
         <!-- Live Clock Box -->
         <div class="hidden xl:flex flex-col items-end px-3.5 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl">
           <div id="liveClock" class="text-xs font-mono font-bold text-slate-800">00:00:00</div>
           <div id="liveDate" class="text-[11px] text-slate-500 font-medium">วันพฤหัสบดี</div>
+        </div>
+
+        <!-- Logged-in Admin User Badge -->
+        <div id="headerAdminUserBadge" class="hidden flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200/80 rounded-xl text-xs text-blue-950">
+          <span class="text-sm">👤</span>
+          <div class="flex flex-col text-left leading-tight">
+            <span id="headerAdminUsername" class="font-extrabold text-blue-900">admin</span>
+            <span id="headerAdminEmail" class="text-[10px] text-blue-600 font-medium truncate max-w-[120px]">admin@vms.local</span>
+          </div>
+          <button type="button" onclick="adminLogout()" class="ml-1 p-1 text-slate-400 hover:text-red-600 font-bold transition active:scale-95 cursor-pointer" title="ออกจากระบบ">
+            🚪
+          </button>
         </div>
 
         <!-- Open Guard View Button -->
@@ -177,7 +189,7 @@
   </header>
 
   <!-- Mobile Quick Tab Bar -->
-  <div class="md:hidden flex overflow-x-auto bg-white border-b border-slate-200 p-2 gap-1.5 no-print shadow-xs">
+  <div id="adminMobileNav" class="hidden md:hidden overflow-x-auto bg-white border-b border-slate-200 p-2 gap-1.5 no-print shadow-xs">
     <button onclick="switchAdminTab('tabOverview')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white whitespace-nowrap">📊 ภาพรวม</button>
     <button onclick="switchAdminTab('tabLogs')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 whitespace-nowrap">📋 ข้อมูลทั้งหมด</button>
     <button onclick="switchAdminTab('tabPasses')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 whitespace-nowrap">🏷️ จัดการบัตร</button>
@@ -186,9 +198,102 @@
   </div>
 
   <!-- ========================================== -->
+  <!-- LOGIN CONTAINER (SHOWN WHEN NOT LOGGED IN) -->
+  <!-- ========================================== -->
+  <div id="adminLoginContainer" class="flex-1 flex items-center justify-center p-4 sm:p-6 my-auto">
+    <div class="bg-white rounded-3xl shadow-2xl border border-slate-200/80 p-6 sm:p-8 max-w-md w-full space-y-6">
+      
+      <!-- Brand Header -->
+      <div class="text-center space-y-2">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-blue-500 text-white flex items-center justify-center text-3xl mx-auto shadow-lg shadow-blue-500/25">
+          🛡️
+        </div>
+        <h2 class="text-xl font-black text-slate-900 tracking-tight">เข้าสู่ระบบ Dashboard ผู้ดูแล</h2>
+        <p class="text-xs text-slate-500">ระบบบริหารจัดการและบันทึกผู้มาติดต่อ (VMS Control Center)</p>
+      </div>
+
+      <!-- Auth Mode Tabs (Sign In / Register) -->
+      <div class="flex p-1 bg-slate-100 rounded-2xl border border-slate-200">
+        <button type="button" id="btnAuthTabSignIn" onclick="switchLoginTab('signin')" class="flex-1 py-2 text-xs font-bold rounded-xl bg-white text-blue-700 shadow-sm border border-slate-200 transition">
+          เข้าสู่ระบบ (Sign In)
+        </button>
+        <button type="button" id="btnAuthTabRegister" onclick="switchLoginTab('register')" class="flex-1 py-2 text-xs font-semibold rounded-xl text-slate-500 hover:text-slate-800 transition">
+          ลงทะเบียนผู้ดูแลใหม่
+        </button>
+      </div>
+
+      <!-- Form 1: Sign In -->
+      <form id="formAdminSignIn" onsubmit="handleAdminLogin(event)" class="space-y-4">
+        <div>
+          <label class="text-xs font-bold text-slate-700">ชื่อผู้ใช้งาน (Username) *</label>
+          <div class="relative mt-1">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">👤</span>
+            <input type="text" id="loginUsername" required placeholder="admin" value="admin" class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-bold text-slate-700">รหัสผ่าน (Password) *</label>
+          <div class="relative mt-1">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">🔒</span>
+            <input type="password" id="loginPassword" required placeholder="••••••••" value="1234" class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 transition cursor-pointer">
+          <span>เข้าสู่ระบบ</span>
+          <span>➔</span>
+        </button>
+
+        <div class="p-3 bg-blue-50/70 border border-blue-200/80 rounded-xl text-[11px] text-blue-900 space-y-0.5">
+          <p class="font-bold">💡 บัญชีเริ่มต้นสำหรับเข้าสู่ระบบ:</p>
+          <p>• Username: <code class="font-bold text-blue-950 font-mono">admin</code> | Password: <code class="font-bold text-blue-950 font-mono">1234</code></p>
+        </div>
+      </form>
+
+      <!-- Form 2: Register (Username, Password, Email) -->
+      <form id="formAdminRegister" onsubmit="handleAdminRegister(event)" class="space-y-4 hidden">
+        <div>
+          <label class="text-xs font-bold text-slate-700">กำหนดชื่อผู้ใช้ (Username) *</label>
+          <div class="relative mt-1">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">👤</span>
+            <input type="text" id="regUsername" required placeholder="เช่น supervisor01" class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-bold text-slate-700">กำหนดรหัสผ่าน (Password) *</label>
+          <div class="relative mt-1">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">🔒</span>
+            <input type="password" id="regPassword" required placeholder="อย่างน้อย 4 ตัวอักษร" class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-bold text-slate-700">อีเมลผู้ดูแล (E-mail) *</label>
+          <div class="relative mt-1">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">✉️</span>
+            <input type="email" id="regEmail" required placeholder="supervisor@example.com" class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20 transition cursor-pointer">
+          <span>➕</span>
+          <span>ลงทะเบียนและบันทึกผู้ดูแล</span>
+        </button>
+
+        <p class="text-[11px] text-slate-400 text-center">
+          ข้อมูลจะถูกจัดเก็บบนฐานข้อมูลระบบอย่างปลอดภัย
+        </p>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
   <!-- MAIN CONTENT CONTAINER (FULLSCREEN 16:9)   -->
   <!-- ========================================== -->
-  <main class="widescreen-container w-full p-5 lg:p-8 flex-1 flex flex-col gap-6">
+  <main id="adminAppContainer" class="widescreen-container w-full p-5 lg:p-8 flex-1 flex flex-col gap-6 hidden">
 
     <!-- ========================================== -->
     <!-- TAB 1: OVERVIEW & REALTIME STATS (16:9)    -->
@@ -910,9 +1015,175 @@
       document.getElementById('linkGuardView').href = currentUrl;
 
       startLiveClock();
-      loadAdminConfig();
-      loadAdminStatsAndOverview();
+      checkAdminAuth();
     });
+
+    // ==========================================
+    // ADMIN AUTHENTICATION (LOGIN & REGISTRATION)
+    // ==========================================
+    function checkAdminAuth() {
+      let session = null;
+      try {
+        session = JSON.parse(sessionStorage.getItem('VMS_ADMIN_SESSION') || 'null');
+      } catch (e) {}
+
+      const loginView = document.getElementById('adminLoginContainer');
+      const appView = document.getElementById('adminAppContainer');
+      const headerNav = document.getElementById('adminHeaderNav');
+      const mobileNav = document.getElementById('adminMobileNav');
+      const userBadge = document.getElementById('headerAdminUserBadge');
+
+      if (session && session.username) {
+        if (loginView) loginView.classList.add('hidden');
+        if (appView) appView.classList.remove('hidden');
+        if (headerNav) {
+          headerNav.classList.remove('hidden');
+          headerNav.classList.add('md:flex');
+        }
+        if (mobileNav) mobileNav.classList.remove('hidden');
+        if (userBadge) {
+          userBadge.classList.remove('hidden');
+          document.getElementById('headerAdminUsername').innerText = session.username;
+          document.getElementById('headerAdminEmail').innerText = session.email || '-';
+        }
+        loadAdminConfig();
+        loadAdminStatsAndOverview();
+      } else {
+        if (loginView) loginView.classList.remove('hidden');
+        if (appView) appView.classList.add('hidden');
+        if (headerNav) {
+          headerNav.classList.add('hidden');
+          headerNav.classList.remove('md:flex');
+        }
+        if (mobileNav) mobileNav.classList.add('hidden');
+        if (userBadge) userBadge.classList.add('hidden');
+      }
+    }
+
+    function handleAdminLogin(event) {
+      if (event) event.preventDefault();
+      const u = document.getElementById('loginUsername').value.trim();
+      const p = document.getElementById('loginPassword').value.trim();
+
+      if (!u || !p) {
+        Swal.fire('กรุณากรอกข้อมูล', 'โปรดระบุชื่อผู้ใช้และรหัสผ่าน', 'warning');
+        return;
+      }
+
+      Swal.fire({
+        title: 'กำลังเข้าสู่ระบบ...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res && res.success && res.user) {
+            sessionStorage.setItem('VMS_ADMIN_SESSION', JSON.stringify({
+              username: res.user.username,
+              email: res.user.email,
+              loggedInAt: new Date().toISOString()
+            }));
+            Swal.fire({
+              icon: 'success',
+              title: 'เข้าสู่ระบบสำเร็จ',
+              text: `ยินดีต้อนรับ ${res.user.username}`,
+              timer: 1200,
+              showConfirmButton: false
+            }).then(() => {
+              checkAdminAuth();
+            });
+          } else {
+            Swal.fire('เข้าสู่ระบบไม่สำเร็จ', (res && res.message) || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'error');
+          }
+        })
+        .withFailureHandler(err => {
+          Swal.fire('เกิดข้อผิดพลาด', (err && err.message) || String(err), 'error');
+        })
+        .adminLogin(u, p);
+    }
+
+    function handleAdminRegister(event) {
+      if (event) event.preventDefault();
+      const u = document.getElementById('regUsername').value.trim();
+      const p = document.getElementById('regPassword').value.trim();
+      const e = document.getElementById('regEmail').value.trim();
+
+      if (!u || !p || !e) {
+        Swal.fire('ข้อมูลไม่ครบถ้วน', 'โปรดกรอกชื่อผู้ใช้, รหัสผ่าน และอีเมลให้ครบถ้วน', 'warning');
+        return;
+      }
+
+      if (!e.includes('@')) {
+        Swal.fire('อีเมลไม่ถูกต้อง', 'กรุณาระบุรูปแบบอีเมลที่ถูกต้อง (เช่น user@example.com)', 'warning');
+        return;
+      }
+
+      Swal.fire({
+        title: 'กำลังลงทะเบียน...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res && res.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'ลงทะเบียนสำเร็จ!',
+              text: 'บันทึกข้อมูลผู้ดูแลเรียบร้อยแล้ว สามารถเข้าสู่ระบบได้ทันที',
+              confirmButtonText: 'เข้าสู่ระบบทันที',
+              confirmButtonColor: '#2563eb'
+            }).then(() => {
+              switchLoginTab('signin');
+              document.getElementById('loginUsername').value = u;
+              document.getElementById('loginPassword').value = p;
+            });
+          } else {
+            Swal.fire('ลงทะเบียนไม่สำเร็จ', (res && res.message) || 'เกิดข้อผิดพลาด', 'error');
+          }
+        })
+        .withFailureHandler(err => {
+          Swal.fire('เกิดข้อผิดพลาด', (err && err.message) || String(err), 'error');
+        })
+        .adminRegisterUser(u, p, e);
+    }
+
+    function adminLogout() {
+      Swal.fire({
+        title: 'ออกจากระบบ?',
+        text: 'ต้องการออกจากระบบการจัดการผู้ดูแลหรือไม่',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'ออกจากระบบ',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#e11d48'
+      }).then(r => {
+        if (r.isConfirmed) {
+          sessionStorage.removeItem('VMS_ADMIN_SESSION');
+          checkAdminAuth();
+        }
+      });
+    }
+
+    function switchLoginTab(mode) {
+      const signinForm = document.getElementById('formAdminSignIn');
+      const registerForm = document.getElementById('formAdminRegister');
+      const btnTabIn = document.getElementById('btnAuthTabSignIn');
+      const btnTabReg = document.getElementById('btnAuthTabRegister');
+
+      if (mode === 'signin') {
+        signinForm.classList.remove('hidden');
+        registerForm.classList.add('hidden');
+        btnTabIn.className = 'flex-1 py-2 text-xs font-bold rounded-xl bg-white text-blue-700 shadow-sm border border-slate-200 transition';
+        btnTabReg.className = 'flex-1 py-2 text-xs font-semibold rounded-xl text-slate-500 hover:text-slate-800 transition';
+      } else {
+        signinForm.classList.add('hidden');
+        registerForm.classList.remove('hidden');
+        btnTabReg.className = 'flex-1 py-2 text-xs font-bold rounded-xl bg-white text-blue-700 shadow-sm border border-slate-200 transition';
+        btnTabIn.className = 'flex-1 py-2 text-xs font-semibold rounded-xl text-slate-500 hover:text-slate-800 transition';
+      }
+    }
 
     function startLiveClock() {
       const update = () => {
