@@ -209,18 +209,18 @@ if (typeof window !== 'undefined') {
       return new Proxy({}, {
         get(target, propKey) {
           if (propKey === 'withSuccessHandler') {
-            return function(fn) {
+            return function (fn) {
               return createGasShimRunner(Object.assign({}, handlers, { success: fn }));
             };
           }
           if (propKey === 'withFailureHandler') {
-            return function(fn) {
+            return function (fn) {
               return createGasShimRunner(Object.assign({}, handlers, { failure: fn }));
             };
           }
 
           // เมื่อมีการเรียกฟังก์ชันฝั่ง Server
-          return async function(...args) {
+          return async function (...args) {
             try {
               let res = null;
 
@@ -467,7 +467,7 @@ if (typeof window !== 'undefined') {
               else if (propKey === 'getAdminOverviewStats' || propKey === 'getAdminDashboardStats') {
                 const allPasses = await callSupabaseRest('visitor_passes?select=pass_code,status') || [];
                 const active = await callSupabaseRest('visitor_logs?status=eq.CHECKED_IN&order=check_in_at.desc&select=*') || [];
-                
+
                 const now = new Date();
                 const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
                 const todayLogs = await callSupabaseRest(`visitor_logs?check_in_at=gte.${todayStart}&select=id,status`) || [];
@@ -691,7 +691,7 @@ if (typeof window !== 'undefined') {
                   let localUsers = [];
                   try {
                     localUsers = JSON.parse(localStorage.getItem('VMS_ADMIN_USERS_LOCAL') || '[]');
-                  } catch (e) {}
+                  } catch (e) { }
 
                   const found = localUsers.find(u => u.username === username && u.password === password);
                   if (found) {
@@ -722,7 +722,7 @@ if (typeof window !== 'undefined') {
                 let localUsers = [];
                 try {
                   localUsers = JSON.parse(localStorage.getItem('VMS_ADMIN_USERS_LOCAL') || '[]');
-                } catch (e) {}
+                } catch (e) { }
 
                 if (localUsers.some(u => u.username.toLowerCase() === username.toLowerCase())) {
                   throw new Error('ชื่อผู้ใช้นี้มีอยู่ในระบบแล้ว');
@@ -739,6 +739,50 @@ if (typeof window !== 'undefined') {
                 }
 
                 res = { success: true, message: 'ลงทะเบียนผู้ดูแลระบบเรียบร้อยแล้ว', user: { username, email } };
+              }
+
+              // 21. สำรองข้อมูลลง Google Sheet (Full Sync)
+              else if (propKey === 'syncFullBackupToGoogleSheet' || propKey === 'syncBackupToSheet') {
+                const sheetId = args[0] || localStorage.getItem('VMS_BACKUP_SHEET_ID') || '1cgrCQHYeGWnZpcaw11yHzVE_FncPQ4WCLTU8IOr33W4';
+                try {
+                  res = await callGasApi('syncFullBackupToGoogleSheet', { sheetId: sheetId });
+                  if (res && res.success) {
+                    localStorage.setItem('VMS_LAST_BACKUP_AT', new Date().toISOString());
+                  }
+                } catch (gasErr) {
+                  console.warn('GAS Backup via POST failed:', gasErr);
+                  res = {
+                    success: false,
+                    message: 'ไม่สามารถเรียกใช้ Google Apps Script เพื่อเขียนลง Google Sheet ได้ กรุณาตรวจสอบว่าได้ตั้งค่าสิทธิ์ Apps Script เป็น "Anyone / ทุกคน" หรือยังครับ'
+                  };
+                }
+              }
+
+              // 22. ดึงคอนฟิก Google Sheet สำรองข้อมูล
+              else if (propKey === 'getBackupSheetConfig') {
+                const sheetId = localStorage.getItem('VMS_BACKUP_SHEET_ID') || '1cgrCQHYeGWnZpcaw11yHzVE_FncPQ4WCLTU8IOr33W4';
+                res = {
+                  success: true,
+                  sheetId: sheetId,
+                  sheetUrl: `https://docs.google.com/spreadsheets/d/${sheetId}/edit`,
+                  lastBackupAt: localStorage.getItem('VMS_LAST_BACKUP_AT') || ''
+                };
+              }
+
+              // 23. บันทึก ID Google Sheet
+              else if (propKey === 'saveBackupSheetId') {
+                const sheetId = (args[0] || '').trim();
+                if (sheetId) {
+                  localStorage.setItem('VMS_BACKUP_SHEET_ID', sheetId);
+                  try {
+                    await callGasApi('saveBackupSheetId', { sheetId: sheetId });
+                  } catch (e) {}
+                }
+                res = {
+                  success: true,
+                  sheetId: sheetId,
+                  sheetUrl: `https://docs.google.com/spreadsheets/d/${sheetId}/edit`
+                };
               }
 
               if (handlers.success) handlers.success(res);
