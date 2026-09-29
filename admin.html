@@ -2126,14 +2126,56 @@
                   `
                 });
               } else {
-                Swal.fire('การสำรองข้อมูลไม่สมบูรณ์', (res && res.message) || 'เกิดข้อผิดพลาดในการเขียนข้อมูลลง Google Sheet', 'error');
+                const msg = (res && res.message) || 'เกิดข้อผิดพลาดในการเขียนข้อมูลลง Google Sheet';
+                if (msg.includes('SpreadsheetApp') || msg.includes('auth/spreadsheets') || msg.includes('สิทธิ์') || msg.includes('อนุญาต')) {
+                  showSpreadsheetAuthModal();
+                } else {
+                  Swal.fire('การสำรองข้อมูลไม่สมบูรณ์', msg, 'error');
+                }
               }
             })
             .withFailureHandler(err => {
-              Swal.fire('เกิดข้อผิดพลาด', err.message || err.toString(), 'error');
+              const errStr = (err && err.message) || err.toString();
+              if (errStr.includes('SpreadsheetApp') || errStr.includes('auth/spreadsheets') || errStr.includes('สิทธิ์') || errStr.includes('อนุญาต')) {
+                showSpreadsheetAuthModal();
+              } else {
+                Swal.fire('เกิดข้อผิดพลาด', errStr, 'error');
+              }
             })
             .syncFullBackupToGoogleSheet(sheetId);
         }
+      });
+    }
+
+    function showSpreadsheetAuthModal() {
+      Swal.fire({
+        icon: 'info',
+        title: 'ต้องอนุมัติสิทธิ์ Google Sheet ครั้งแรก',
+        html: `
+          <div class="text-left text-xs space-y-3 text-slate-700 leading-relaxed">
+            <p>เนื่องจากเป็นครั้งแรกที่มีการเชื่อมต่อ Google Spreadsheet ระบบ Google จึงต้องการให้เจ้าของระบบกด <b>"อนุมัติสิทธิ์ (Authorize)"</b> เพียง 1 ครั้งครับ</p>
+            <div class="p-3.5 bg-blue-50/80 border border-blue-200 rounded-2xl space-y-2 text-[11px] text-blue-950">
+              <p class="font-bold text-blue-900 text-xs flex items-center gap-1.5">
+                <span>📌</span> <span>ขั้นตอนการอนุมัติสิทธิ์ (ทำครั้งเดียว ไม่เกิน 1 นาที):</span>
+              </p>
+              <ol class="list-decimal list-inside space-y-1.5 pl-1">
+                <li>คลิกปุ่ม <b>"เปิดหน้า Apps Script Editor"</b> ด้านล่าง</li>
+                <li>ที่แถบเมนูด้านบน เลือกฟังก์ชัน <code class="bg-white border border-blue-200 text-blue-900 px-1.5 py-0.5 rounded font-mono font-bold">testAuthorizeGoogleSheets</code></li>
+                <li>กดปุ่ม <b>"เรียกใช้" (Run)</b> รูปสามเหลี่ยม ▶️</li>
+                <li>จะมีหน้าต่างขึ้นมา ให้กด <b>"ตรวจสอบสิทธิ์" (Review permissions)</b> แล้วเลือกอีเมล Google ของคุณ</li>
+                <li>กด <b>"ขั้นสูง" (Advanced)</b> &rarr; กด <b>"ไปที่... (ไม่ปลอดภัย)"</b> &rarr; กด <b>"อนุญาต" (Allow)</b></li>
+              </ol>
+            </div>
+            <p class="text-[11px] text-slate-500">เมื่ออนุมัติแล้ว ระบบจะสำรองข้อมูลลง Google Sheet ให้ทันที และหลังจากนั้นระบบจะซิงค์ให้อัตโนมัติทุกครั้งครับ</p>
+            <div class="pt-2 text-center">
+              <a href="https://script.google.com/d/1fwGeLJG41BYN-DDwBBq0BLey_XGVlapUercc4hm8VueK7OlU9YSO9EmQ/edit" target="_blank" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 transition">
+                <span>🔗</span> <span>เปิดหน้า Apps Script Editor เพื่ออนุมัติสิทธิ์</span>
+              </a>
+            </div>
+          </div>
+        `,
+        confirmButtonText: 'ปิดหน้าต่างนี้',
+        confirmButtonColor: '#64748b'
       });
     }
 
