@@ -357,17 +357,27 @@
             </span>
           </div>
 
-          <!-- ฟิลด์สำคัญที่สุด: จุดที่ต้องการติดต่อ / บุคคลที่เข้าพบ (Host / Destination) -->
-          <div class="p-3 bg-amber-50/80 border border-amber-300 rounded-2xl space-y-1.5">
+          <!-- ฟิลด์สำคัญ: แผนก/จุดที่ต้องการติดต่อ (Dropdown จาก visitor_departments) -->
+          <div class="p-3 bg-amber-50/80 border border-amber-300 rounded-2xl space-y-2">
             <div class="flex items-center justify-between">
               <label class="text-xs font-black text-amber-950 flex items-center gap-1">
-                <span>🏢</span> <span>จุดที่ต้องการติดต่อ / บุคคลที่เข้าพบ (Host) *</span>
+                <span>🏢</span> <span>แผนก / จุดที่ต้องการเข้าพบ (Department / Host) *</span>
               </label>
               <span class="text-[9px] bg-amber-200 text-amber-900 font-bold px-1.5 py-0.5 rounded">ปลายทาง</span>
             </div>
-            <input type="text" id="inContactPerson" placeholder="เช่น แผนกบัญชี, บ้านเลขที่ 99/12, คุณสมชาย (เจ้าหน้าที่)" class="w-full px-3 py-2.5 bg-white border-2 border-amber-400 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-amber-500 transition placeholder:font-normal placeholder:text-slate-400 text-xs sm:text-sm">
+            
+            <!-- ดร็อปดาวน์เลือกแผนกจากตาราง visitor_departments -->
+            <select id="inDepartmentSelect" onchange="onDepartmentSelectChange()" class="w-full px-3 py-2.5 bg-white border-2 border-amber-400 rounded-xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-amber-500 transition text-xs sm:text-sm cursor-pointer">
+              <option value="">-- กำลังโหลดรายชื่อแผนก... --</option>
+            </select>
+
+            <!-- ช่องระบุรายละเอียดเพิ่มเติม หรือระบุชื่อบุคคลที่เข้าพบ / บ้านเลขที่ / หรือแผนกอื่นๆ -->
+            <div id="inCustomContactPersonContainer" class="space-y-1">
+              <input type="text" id="inContactPerson" placeholder="บุคคลที่เข้าพบ หรือบ้านเลขที่ (ถ้ามี)" class="w-full px-3 py-2 bg-white border border-amber-300 rounded-xl text-slate-900 font-medium outline-none focus:ring-2 focus:ring-amber-500 transition text-xs placeholder:text-slate-400">
+            </div>
+
             <p class="text-[10px] text-amber-800 leading-snug font-medium">
-              ⚠️ ระบุชื่อเจ้าบ้าน, บุคคลภายใน, หรือแผนกที่ต้องการไปพบ <b class="underline text-red-600 font-bold">(ห้ามใส่ชื่อผู้มาติดต่อ)</b>
+              ⚠️ เลือกแผนกจากดร็อปดาวน์ และระบุบุคคลภายในที่ต้องการไปพบ <b class="underline text-red-600 font-bold">(ห้ามใส่ชื่อผู้มาติดต่อ)</b>
             </p>
           </div>
 
@@ -1108,7 +1118,8 @@
               allQuickPassCodes = res.data.map(function(v) {
                 return {
                   code: v.pass_code,
-                  desc: v.department_or_house || v.contact_person || 'ผู้มาติดต่อ'
+                  desc: v.visitor_name ? (v.visitor_name + (v.department_or_house ? ' (' + v.department_or_house + ')' : '')) : (v.department_or_house || 'ผู้มาติดต่อ'),
+                  isAvailable: false
                 };
               });
               renderQuickPassGrid(allQuickPassCodes);
@@ -1125,7 +1136,28 @@
           })
           .getActiveVisitorsListForGuard();
       } else {
-        renderDefaultPassButtons();
+        // ดึงรายการบัตรทั้งหมดจากระบบ (อิงจำนวนและสถานะจาก Dashboard 100%)
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (res && res.success && res.data && res.data.length > 0) {
+              allQuickPassCodes = res.data.map(function(p) {
+                const isAvail = (p.status === 'AVAILABLE');
+                return {
+                  code: p.pass_code,
+                  status: p.status,
+                  isAvailable: isAvail,
+                  desc: isAvail ? '🟢 ว่าง' : ('🟠 ใช้งาน: ' + (p.visitor_name || 'มีผู้ถือครอง'))
+                };
+              });
+              renderQuickPassGrid(allQuickPassCodes);
+            } else {
+              renderDefaultPassButtons();
+            }
+          })
+          .withFailureHandler(function() {
+            renderDefaultPassButtons();
+          })
+          .getAdminPassesList();
       }
     }
 
@@ -1133,7 +1165,7 @@
       allQuickPassCodes = [];
       for (let i = 1; i <= 30; i++) {
         const numStr = (i < 10 ? '00' : '0') + i;
-        allQuickPassCodes.push({ code: 'V-' + numStr, desc: '' });
+        allQuickPassCodes.push({ code: 'V-' + numStr, desc: '🟢 ว่าง', isAvailable: true });
       }
       renderQuickPassGrid(allQuickPassCodes);
     }
@@ -1152,17 +1184,35 @@
       list.forEach(function(item) {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'p-2.5 rounded-xl border flex flex-col items-center justify-center font-mono font-bold transition active:scale-95 shadow-xs ' +
-          (isCheckOut 
-            ? 'bg-red-50/80 border-red-200 text-red-700 hover:bg-red-100' 
-            : 'bg-blue-50/80 border-blue-200 text-blue-700 hover:bg-blue-100');
+        const isAvail = (item.isAvailable !== false);
+        
+        let btnClass = 'p-2 sm:p-2.5 rounded-xl border flex flex-col items-center justify-center font-mono font-bold transition active:scale-95 shadow-xs ';
+        if (isCheckOut) {
+          btnClass += 'bg-red-50/80 border-red-200 text-red-700 hover:bg-red-100 cursor-pointer';
+        } else if (isAvail) {
+          btnClass += 'bg-emerald-50/80 border-emerald-300 text-emerald-800 hover:bg-emerald-100 hover:border-emerald-400 cursor-pointer';
+        } else {
+          btnClass += 'bg-amber-50/70 border-amber-200 text-amber-800 hover:bg-amber-100 cursor-pointer';
+        }
+        btn.className = btnClass;
         
         let descHtml = '';
         if (item.desc) {
-          descHtml = '<span class="text-[9px] font-sans font-normal text-slate-500 truncate max-w-full mt-0.5">' + escapeHtml(item.desc) + '</span>';
+          const badgeClass = isCheckOut ? 'text-red-700' : (isAvail ? 'text-emerald-700 font-semibold' : 'text-amber-800 font-semibold');
+          descHtml = '<span class="text-[9px] font-sans truncate max-w-full mt-0.5 ' + badgeClass + '">' + escapeHtml(item.desc) + '</span>';
         }
         btn.innerHTML = '<span class="text-xs">' + escapeHtml(item.code) + '</span>' + descHtml;
         btn.onclick = function() {
+          if (!isCheckOut && !isAvail) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'บัตร ' + item.code + ' กำลังถูกใช้งาน',
+              text: 'บัตรนี้มีผู้มาติดต่อถือครองอยู่ในพื้นที่ (' + (item.desc || '') + ') กรุณาเลือกบัตรใบอื่นที่สถานะว่างครับ',
+              confirmButtonText: 'เข้าใจแล้ว',
+              confirmButtonColor: '#f59e0b'
+            });
+            return;
+          }
           selectQuickPass(item.code);
         };
         container.appendChild(btn);
@@ -1199,21 +1249,100 @@
     }
 
     // ==========================================
+    // จัดการแผนก / จุดติดต่อ (Visitor Departments)
+    // ==========================================
+    function loadVisitorDepartments() {
+      const select = document.getElementById('inDepartmentSelect');
+      if (!select) return;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res && res.success && res.data && res.data.length > 0) {
+            renderDepartmentOptions(res.data);
+          } else {
+            renderDefaultDepartments();
+          }
+        })
+        .withFailureHandler(function() {
+          renderDefaultDepartments();
+        })
+        .getVisitorDepartments();
+    }
+
+    function renderDepartmentOptions(depts) {
+      const select = document.getElementById('inDepartmentSelect');
+      if (!select) return;
+      select.innerHTML = '<option value="">-- กรุณาเลือกแผนก / จุดที่ต้องการเข้าพบ --</option>';
+      depts.forEach(function(d) {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d;
+        select.appendChild(opt);
+      });
+      const optOther = document.createElement('option');
+      optOther.value = 'OTHER';
+      optOther.textContent = '➕ อื่นๆ (ระบุเอง)';
+      select.appendChild(optOther);
+    }
+
+    function renderDefaultDepartments() {
+      const defaultDepts = [
+        'ฝ่ายบริหาร / ผู้บริหาร',
+        'ฝ่ายทรัพยากรบุคคล (HR)',
+        'ฝ่ายจัดซื้อและพัสดุ',
+        'ฝ่ายบัญชีและการเงิน',
+        'ฝ่ายขายและการตลาด',
+        'ฝ่ายเทคโนโลยีสารสนเทศ (IT)',
+        'ฝ่ายคลังสินค้า / สโตร์ / โลจิสติกส์',
+        'ฝ่ายผลิตและซ่อมบำรุง',
+        'แผนกต้อนรับ / ประชาสัมพันธ์',
+        'งานรักษาความปลอดภัย / ก่อสร้าง',
+        'บ้านพัก / ห้องชุด / ที่อยู่อาศัย'
+      ];
+      renderDepartmentOptions(defaultDepts);
+    }
+
+    function onDepartmentSelectChange() {
+      const select = document.getElementById('inDepartmentSelect');
+      const contactInput = document.getElementById('inContactPerson');
+      if (!select || !contactInput) return;
+
+      if (select.value === 'OTHER') {
+        contactInput.placeholder = 'ระบุแผนก, บ้านเลขที่ หรือบุคคลที่ต้องการเข้าพบ *';
+        contactInput.focus();
+      } else if (select.value) {
+        contactInput.placeholder = 'ระบุชื่อบุคคลที่เข้าพบใน ' + select.value + ' (ถ้ามี หรือเว้นว่างได้)';
+      } else {
+        contactInput.placeholder = 'บุคคลที่เข้าพบ หรือบ้านเลขที่ (ถ้ามี)';
+      }
+    }
+
+    // ==========================================
     // บันทึก Check-in (ส่งข้อมูลแล้วล้างฟอร์มทันที)
     // ==========================================
     function submitCheckIn() {
       const passCode = document.getElementById('inPassCode').value.trim();
-      const contactPerson = document.getElementById('inContactPerson').value.trim();
+      const deptSelect = document.getElementById('inDepartmentSelect');
+      const selectedDept = deptSelect ? deptSelect.value.trim() : '';
+      const customContact = document.getElementById('inContactPerson').value.trim();
 
       if (!passCode) {
         Swal.fire('กรุณาระบุรหัสบัตร', 'กรุณาสแกน QR Code หรือเลือกหมายเลขบัตร', 'warning');
         return;
       }
 
-      if (!contactPerson) {
-        Swal.fire('กรุณาระบุจุดที่ต้องการติดต่อ', 'โปรดระบุชื่อเจ้าบ้าน, แผนก, หรือบุคคลที่ต้องการเข้าพบ (Host)', 'warning');
+      if (!selectedDept && !customContact) {
+        Swal.fire('กรุณาระบุจุดที่ต้องการติดต่อ', 'โปรดเลือกแผนก หรือระบุชื่อเจ้าบ้าน/บุคคลที่ต้องการเข้าพบ (Host)', 'warning');
         return;
       }
+
+      if (selectedDept === 'OTHER' && !customContact) {
+        Swal.fire('กรุณาระบุรายละเอียด', 'เนื่องจากเลือก "อื่นๆ" กรุณากรอกชื่อแผนกหรือบุคคลที่เข้าพบในช่องด้านล่างครับ', 'warning');
+        return;
+      }
+
+      const finalDepartment = (selectedDept === 'OTHER' || !selectedDept) ? (customContact || 'ไม่ระบุ') : selectedDept;
+      const finalContactPerson = customContact || finalDepartment;
 
       const title = document.getElementById('inTitle').value.trim();
       const firstName = document.getElementById('inFirstName').value.trim();
@@ -1221,7 +1350,7 @@
       const nameEn = (document.getElementById('inNameEn') ? document.getElementById('inNameEn').value.trim() : '');
 
       const visitorFullNameTh = `${title} ${firstName} ${lastName}`.trim().toLowerCase();
-      const contactLower = contactPerson.toLowerCase();
+      const contactLower = finalContactPerson.toLowerCase();
 
       // ตรวจสอบความถูกต้อง: ห้ามใส่ชื่อผู้มาติดต่อในช่องจุดที่ต้องการติดต่อ
       if ((firstName && contactLower === firstName.toLowerCase()) ||
@@ -1248,8 +1377,8 @@
         name_en: nameEn,
         id_card_number: rawIdCard,
         address: document.getElementById('inAddress').value.trim(),
-        contact_person: contactPerson,
-        department_or_house: contactPerson,
+        contact_person: finalContactPerson,
+        department_or_house: finalDepartment,
         license_plate: document.getElementById('inLicensePlate').value.trim(),
         purpose: document.getElementById('inPurpose').value,
         photo_base64: compressedCardPhotoBase64,
@@ -1388,7 +1517,10 @@
         idInput.dataset.raw = '';
       }
       document.getElementById('inAddress').value = '';
+      const deptSelect = document.getElementById('inDepartmentSelect');
+      if (deptSelect) deptSelect.selectedIndex = 0;
       document.getElementById('inContactPerson').value = '';
+      document.getElementById('inContactPerson').placeholder = 'บุคคลที่เข้าพบ หรือบ้านเลขที่ (ถ้ามี)';
       document.getElementById('inLicensePlate').value = '';
       document.getElementById('inPurpose').selectedIndex = 0;
       compressedCardPhotoBase64 = '';
@@ -1778,6 +1910,7 @@
     // เริ่มต้นทำงานเมื่อโหลดหน้า
     window.addEventListener('DOMContentLoaded', function() {
       setupIdCardMasking();
+      loadVisitorDepartments();
 
       // ตรวจสอบเครื่องอ่าน Smart Card หากรันในแอป Android
       if (window.AndroidSmartCard) {
