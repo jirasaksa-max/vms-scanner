@@ -1398,24 +1398,15 @@
           if (res && res.success) {
             let sigNoticeHtml = '';
             if (res.require_signature) {
-              const signUrl = getCanonicalSignUrl(passCode.toUpperCase());
               sigNoticeHtml = 
-                '<div class="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 text-left space-y-2 mt-2.5">' +
+                '<div class="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 text-left space-y-1.5 mt-2.5">' +
                   '<div class="font-bold flex items-center justify-between text-amber-900">' +
-                    '<span class="flex items-center gap-1.5 font-bold"><span>✍️</span> <span>กำหนดให้ผู้รับการติดต่อเซ็นชื่อ</span></span>' +
+                    '<span class="flex items-center gap-1.5 font-bold"><span>✍️</span> <span>กำหนดให้ผู้รับการติดต่อเซ็นชื่อรับรอง</span></span>' +
                     '<span class="bg-amber-200/70 text-amber-900 px-2 py-0.5 rounded-full text-[10px] font-bold">รอลายเซ็น</span>' +
                   '</div>' +
                   '<p class="text-[11px] text-slate-600 leading-snug">' +
-                    'ผู้รับการติดต่อสามารถใช้กล้องมือถือสแกน QR Code บนบัตร <b>' + escapeHtml(passCode.toUpperCase()) + '</b> เพื่อเซ็นชื่อได้ทันที หรือส่งลิงก์ผ่าน LINE ได้ครับ' +
+                    'โปรดแจ้งให้ผู้มาติดต่อแสดงบัตร <b>' + escapeHtml(passCode.toUpperCase()) + '</b> ให้ผู้รับการติดต่อ (เจ้าของบ้าน/แผนก) ใช้กล้องมือถือสแกน QR Code บนบัตรเพื่อเซ็นชื่อรับรอง' +
                   '</p>' +
-                  '<div class="grid grid-cols-2 gap-2 pt-1">' +
-                    '<button type="button" id="btnCopyCheckInSign" class="py-2 px-2 bg-white hover:bg-amber-100 border border-amber-300 text-amber-900 font-bold rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-xs cursor-pointer">' +
-                      '<span>🔗</span> <span>คัดลอกลิงก์</span>' +
-                    '</button>' +
-                    '<a href="' + signUrl + '" target="_blank" class="py-2 px-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-xs">' +
-                      '<span>✍️</span> <span>เปิดหน้าเซ็นชื่อ</span>' +
-                    '</a>' +
-                  '</div>' +
                 '</div>';
             }
 
@@ -1427,15 +1418,7 @@
                   '<div>มอบบัตร <b class="text-blue-600 text-2xl font-mono">' + escapeHtml(passCode.toUpperCase()) + '</b> ให้ผู้มาติดต่อ</div>' +
                   sigNoticeHtml +
                 '</div>',
-              confirmButtonText: 'เรียบร้อย',
-              didOpen: function(popup) {
-                const btn = popup.querySelector('#btnCopyCheckInSign');
-                if (btn) {
-                  btn.onclick = function() {
-                    copyHostSignUrl(passCode.toUpperCase());
-                  };
-                }
-              }
+              confirmButtonText: 'เรียบร้อย'
             });
 
             // ล้างฟอร์ม
@@ -1673,23 +1656,8 @@
             '<span class="text-[9px] bg-rose-200 text-rose-900 font-bold px-2 py-0.5 rounded-full">WAITING</span>' +
           '</div>' +
           '<p class="text-[11px] text-slate-600 leading-snug">' +
-            'ผู้รับการติดต่อยังไม่ได้ลงชื่อรับรองการเข้าพบ โปรดให้ผู้รับการติดต่อสแกน QR Code บนบัตร หรือแตะปุ่มด้านล่างเพื่อส่งลิงก์เซ็นชื่อก่อนคืนบัตร' +
-          '</p>' +
-          '<div class="grid grid-cols-2 gap-2 pt-0.5">' +
-            '<button type="button" id="btnCopyPendingHostSign" class="py-2 px-2 bg-white hover:bg-rose-100 text-rose-900 border border-rose-300 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 shadow-xs cursor-pointer">' +
-              '<span>🔗</span> <span>คัดลอกลิงก์ (LINE)</span>' +
-            '</button>' +
-            '<a href="' + getCanonicalSignUrl(v.pass_code) + '" target="_blank" class="py-2 px-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 shadow-xs">' +
-              '<span>✍️</span> <span>เปิดหน้าเซ็นชื่อ</span>' +
-            '</a>' +
-          '</div>';
-
-        const copyBtn = document.getElementById('btnCopyPendingHostSign');
-        if (copyBtn) {
-          copyBtn.onclick = function() {
-            copyHostSignUrl(v.pass_code);
-          };
-        }
+            'ผู้รับการติดต่อยังไม่ได้ลงชื่อรับรองการเข้าพบ โปรดแจ้งให้ผู้รับการติดต่อใช้โทรศัพท์มือถือสแกน QR Code บนบัตร <b>' + escapeHtml(v.pass_code) + '</b> เพื่อลงนามรับรองก่อนคืนบัตร' +
+          '</p>';
 
         if (submitBtn) {
           submitBtn.disabled = true;
