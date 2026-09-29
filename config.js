@@ -13,7 +13,7 @@ const VMS_CONFIG = {
   GEMINI_API_KEY: '',
 
   // Google Apps Script Web App URL (สำหรับจัดเก็บไฟล์รูปลายเซ็นลง Google Drive)
-  GAS_API_URL: 'https://script.google.com/macros/s/AKfycbz3Y6VoFUAZAtKECU4EsM2cwB0LSR2Znio_OTNnWege5TXxJSnIx_WkhuJSpv9QIQ8w/exec'
+  GAS_API_URL: 'https://script.google.com/macros/s/AKfycbyAyyWSW7XS58H9I8RgauHPRLWB1u0u4VzKuvMSy_MwLq9rz19eqMvqhUQwbusEhFHK/exec'
 };
 
 /**
@@ -171,7 +171,6 @@ async function directGeminiOcr(base64Data, mimeType = 'image/jpeg') {
     throw lastError || new Error('ไม่สามารถประมวลผล OCR ผ่าน Gemini AI ได้');
   }
 
-  const resJson = await response.json();
   const candidateText = resJson.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!candidateText) throw new Error('ไม่พบข้อมูลตอบกลับจาก Gemini AI');
 
