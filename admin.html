@@ -879,7 +879,7 @@
               <span>📷</span> <span>รูปถ่ายบัตรประชาชน</span>
             </span>
             <div id="detailPhotoContainer" class="w-full flex items-center justify-center min-h-[140px] bg-white rounded-xl border border-slate-200 overflow-hidden">
-              <img id="detailPhotoImg" src="" alt="ภาพบัตร" class="max-h-36 object-contain cursor-pointer rounded-lg" onclick="openPhotoModal(this.src, document.getElementById('detailVisitorName').innerText)">
+              <img id="detailPhotoImg" src="" alt="ภาพบัตร" class="max-h-36 object-contain cursor-pointer rounded-lg hover:opacity-90 transition" onerror="handleImageLoadError(this)" onclick="openPhotoModal(this.src, document.getElementById('detailVisitorName').innerText)">
               <span id="detailNoPhotoText" class="text-slate-400 text-xs hidden">ไม่มีรูปถ่ายบัตร</span>
             </div>
           </div>
@@ -890,7 +890,7 @@
               <span>✍️</span> <span>ลายเซ็นรับรอง (Host Signature)</span>
             </span>
             <div id="detailSigContainer" class="w-full flex items-center justify-center min-h-[140px] bg-white rounded-xl border border-slate-200 p-2 overflow-hidden">
-              <img id="detailSigImg" src="" alt="ลายเซ็น" class="max-h-36 object-contain">
+              <img id="detailSigImg" src="" alt="ลายเซ็น" class="max-h-36 object-contain cursor-pointer rounded-lg hover:opacity-90 transition" onerror="handleImageLoadError(this)" onclick="openPhotoModal(this.src, 'ลายเซ็นรับรอง - ' + document.getElementById('detailVisitorName').innerText)">
               <span id="detailNoSigText" class="text-slate-400 text-xs hidden">ยังไม่มีลายเซ็นรับรอง</span>
             </div>
             <div id="detailSigMeta" class="text-[10px] text-slate-500 text-center font-medium"></div>
@@ -1465,17 +1465,19 @@
 
         // รูปบัตร
         let photoThumb = '<span class="text-slate-300 text-xs">-</span>';
-        if (item.photo_base64) {
+        const formattedThumbPhoto = formatDriveImageUrl(item.photo_base64);
+        if (formattedThumbPhoto) {
           photoThumb = `
-            <img src="${item.photo_base64}" onclick="openPhotoModalByIndex(${globalIndex})" class="w-8 h-8 rounded-lg object-cover cursor-pointer hover:opacity-80 border border-slate-200 shadow-xs" title="คลิกดูภาพขยาย">
+            <img src="${formattedThumbPhoto}" onerror="handleImageLoadError(this)" onclick="openPhotoModalByIndex(${globalIndex})" class="w-8 h-8 rounded-lg object-cover cursor-pointer hover:opacity-80 border border-slate-200 shadow-xs" title="คลิกดูภาพขยาย">
           `;
         }
 
         // ลายเซ็นรับรอง
         let signBadge = '<span class="text-slate-400 text-[10px]">⏳ รอลายเซ็น</span>';
-        if (item.signature_status === 'SIGNED' && item.signature_url) {
+        const formattedSignUrl = formatDriveImageUrl(item.signature_url);
+        if (item.signature_status === 'SIGNED' && formattedSignUrl) {
           signBadge = `
-            <a href="${item.signature_url}" target="_blank" class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 hover:text-emerald-900 border border-emerald-300 px-2 py-0.5 rounded-lg text-[10px] font-bold transition shadow-xs" title="ผู้รับรอง: ${item.signed_by || '-'}">
+            <a href="${formattedSignUrl}" target="_blank" class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 hover:text-emerald-900 border border-emerald-300 px-2 py-0.5 rounded-lg text-[10px] font-bold transition shadow-xs" title="ผู้รับรอง: ${item.signed_by || '-'}">
               <span>✍️</span>
               <span class="truncate max-w-[80px]">${item.signed_by || 'ดูลายเซ็น'}</span>
             </a>
@@ -1645,8 +1647,9 @@
       // Photo
       const photoImg = document.getElementById('detailPhotoImg');
       const noPhotoText = document.getElementById('detailNoPhotoText');
-      if (item.photo_base64) {
-        photoImg.src = item.photo_base64;
+      const formattedPhoto = formatDriveImageUrl(item.photo_base64);
+      if (formattedPhoto) {
+        photoImg.src = formattedPhoto;
         photoImg.classList.remove('hidden');
         noPhotoText.classList.add('hidden');
       } else {
@@ -1659,8 +1662,9 @@
       const sigImg = document.getElementById('detailSigImg');
       const noSigText = document.getElementById('detailNoSigText');
       const sigMeta = document.getElementById('detailSigMeta');
-      if (item.signature_url) {
-        sigImg.src = item.signature_url;
+      const formattedSig = formatDriveImageUrl(item.signature_url);
+      if (formattedSig) {
+        sigImg.src = formattedSig;
         sigImg.classList.remove('hidden');
         noSigText.classList.add('hidden');
         const signTimeStr = item.signed_at ? new Date(item.signed_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.' : '';
@@ -1679,16 +1683,42 @@
       document.getElementById('visitorDetailModal').classList.add('hidden');
     }
 
+    // URL Helper สำหรับแปลงลิงก์ Google Drive ให้แสดงผลในแท็ก <img> ได้ 100%
+    function formatDriveImageUrl(url) {
+      if (!url || typeof url !== 'string') return '';
+      if (url.startsWith('data:image')) return url;
+      if (url.includes('lh3.googleusercontent.com/d/')) return url;
+
+      let match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (!match) {
+        match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      }
+      if (match && match[1]) {
+        return `https://lh3.googleusercontent.com/d/${match[1]}`;
+      }
+      return url;
+    }
+
+    // กรณี CDN มีอาการหน่วง ให้สลับไปใช้ Thumbnail Endpoint สำรองอัตโนมัติ
+    function handleImageLoadError(imgEl) {
+      if (!imgEl || !imgEl.src) return;
+      const curSrc = imgEl.src;
+      let match = curSrc.match(/\/d\/([a-zA-Z0-9_-]+)/) || curSrc.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (match && match[1] && !curSrc.includes('thumbnail?id=')) {
+        imgEl.src = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000`;
+      }
+    }
+
     // Modal ภาพบัตร
     function openPhotoModalByIndex(idx) {
       const item = (filteredLogsCache && filteredLogsCache[idx]) || (allLogsCache && allLogsCache[idx]);
       if (!item || !item.photo_base64) return;
       const title = ((item.title || '') + ' ' + (item.first_name || '') + ' ' + (item.last_name || '')).trim();
-      openPhotoModal(item.photo_base64, title);
+      openPhotoModal(formatDriveImageUrl(item.photo_base64), title);
     }
     function openPhotoModal(imgSrc, title) {
-      document.getElementById('photoModalImg').src = imgSrc;
-      document.getElementById('photoModalTitle').innerText = 'รูปถ่ายบัตร: ' + title;
+      document.getElementById('photoModalImg').src = formatDriveImageUrl(imgSrc);
+      document.getElementById('photoModalTitle').innerText = title || 'รูปภาพ';
       document.getElementById('photoModal').classList.remove('hidden');
     }
     function closePhotoModal() {
