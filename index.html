@@ -105,6 +105,18 @@
       background: #cbd5e1;
       border-radius: 8px;
     }
+
+    /* ซ่อนปุ่ม Play Overlay ของ Android Chrome บนวิดีโอกล้องสด */
+    #liveCameraVideo::-webkit-media-controls,
+    #liveCameraVideo::-webkit-media-controls-start-playback-button,
+    #liveCameraVideo::-webkit-media-controls-play-button,
+    #liveCameraVideo::-webkit-media-controls-overlay-play-button,
+    #liveCameraVideo::-webkit-media-controls-enclosure {
+      display: none !important;
+      -webkit-appearance: none !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
   </style>
 </head>
 
@@ -619,8 +631,8 @@
     </div>
 
     <!-- Video Feed Container with ID Card Frame Overlay -->
-    <div class="relative w-full max-w-md flex-1 flex items-center justify-center overflow-hidden rounded-2xl bg-black my-2 shadow-2xl">
-      <video id="liveCameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+    <div onclick="resumeLiveCameraVideo()" class="relative w-full max-w-md flex-1 flex items-center justify-center overflow-hidden rounded-2xl bg-black my-2 shadow-2xl cursor-pointer">
+      <video id="liveCameraVideo" autoplay playsinline webkit-playsinline muted class="w-full h-full object-cover pointer-events-auto"></video>
 
       <!-- ID Card Overlay Guide Frame -->
       <div class="absolute inset-0 pointer-events-none flex items-center justify-center p-4">
@@ -639,6 +651,14 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Fallback Notice for Devices with Autoplay / WebRTC issues -->
+    <div class="w-full max-w-md text-center py-1.5 z-10 shrink-0">
+      <label for="idCardFileInput" onclick="closeLiveCameraModal()"
+        class="text-xs text-amber-300 hover:text-amber-200 underline font-bold cursor-pointer inline-flex items-center gap-1 bg-black/40 px-3 py-1 rounded-full border border-amber-300/30">
+        <span>📷 ภาพค้างหรือไม่ขึ้นภาพ? แตะที่นี่เพื่อใช้กล้องมือถือ</span>
+      </label>
     </div>
 
     <!-- Bottom Controls -->
@@ -812,6 +832,14 @@
       }
     }
 
+    function resumeLiveCameraVideo() {
+      const v = document.getElementById('liveCameraVideo');
+      if (v) {
+        v.muted = true;
+        v.play().catch(function () {});
+      }
+    }
+
     async function startLiveCameraStream() {
       if (liveCameraStream) {
         liveCameraStream.getTracks().forEach(function (t) { t.stop(); });
@@ -821,8 +849,8 @@
       const constraints = {
         video: {
           facingMode: { ideal: liveCameraFacingMode },
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
         },
         audio: false
       };
@@ -830,8 +858,28 @@
       liveCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
       const video = document.getElementById('liveCameraVideo');
       if (video) {
+        video.muted = true;
+        video.defaultMuted = true;
+        video.playsInline = true;
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', 'true');
+        video.setAttribute('autoplay', '');
         video.srcObject = liveCameraStream;
-        await video.play();
+
+        const playPromise = function () {
+          try {
+            const p = video.play();
+            if (p !== undefined) {
+              p.catch(function (e) {
+                console.warn('Playback error, tapping video will play:', e);
+              });
+            }
+          } catch (e) { }
+        };
+
+        video.onloadedmetadata = playPromise;
+        video.oncanplay = playPromise;
+        playPromise();
       }
     }
 
@@ -853,8 +901,19 @@
 
     function captureLiveCameraPhoto() {
       const video = document.getElementById('liveCameraVideo');
-      if (!video || !video.videoWidth) {
-        Swal.fire('กล้องยังไม่พร้อม', 'โปรดรอกล้องเริ่มทำงานสักครู่', 'info');
+      if (!video) return;
+
+      if (video.paused) {
+        video.play().catch(function () {});
+      }
+
+      if (!video.videoWidth || video.videoWidth === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'กล้องกำลังเริ่มทำงาน...',
+          text: 'กรุณารอสักครู่ให้ภาพกล้องปรากฏ หรือแตะปุ่ม "ใช้กล้องมือถือ" ด้านล่างแทนครับ',
+          confirmButtonText: 'ตกลง'
+        });
         return;
       }
 
@@ -880,8 +939,6 @@
       const base64 = canvas.toDataURL('image/jpeg', 0.85);
       closeLiveCameraModal();
       processBase64Photo(base64);
-    }
-
     function triggerIdCardCamera() {
       openLiveCameraModal();
     }
