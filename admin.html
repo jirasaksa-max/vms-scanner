@@ -481,6 +481,10 @@
         </div>
 
         <div class="flex items-center gap-2">
+          <button onclick="triggerManualFullBackup()" class="px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-emerald-200 transition active:scale-95 cursor-pointer" title="ซิงค์ข้อมูลทั้งหมดลง Google Sheet">
+            <span>📊</span>
+            <span>ซิงค์ Google Sheet</span>
+          </button>
           <button onclick="exportLogsToCSV()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer">
             <span>📥</span>
             <span>ส่งออก CSV</span>
@@ -773,6 +777,112 @@
           </div>
         </div>
 
+      </div>
+
+      <!-- Card 3: Google Sheets Database Backup & Synchronization -->
+      <div class="bg-white rounded-3xl p-6 lg:p-8 border border-slate-200/80 shadow-xs space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center text-2xl shrink-0">
+              📊
+            </div>
+            <div>
+              <h2 class="font-extrabold text-base lg:text-lg text-slate-900 flex items-center gap-2">
+                <span>สำรองฐานข้อมูลลง Google Sheet อัตโนมัติ</span>
+                <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">Live Auto-Sync</span>
+              </h2>
+              <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                ระบบซิงค์ข้อมูลผู้มาติดต่อ (Logs), หมายเลขบัตรผ่าน (Passes), และรายชื่อแผนก (Departments) ลง Google Spreadsheet แบบอัตโนมัติ
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button type="button" onclick="openBackupGoogleSheet()" class="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold rounded-xl text-xs border border-emerald-200 transition active:scale-95 flex items-center gap-1.5 cursor-pointer">
+              <span>📑</span>
+              <span>เปิดดู Google Sheet</span>
+            </button>
+            <button type="button" onclick="triggerManualFullBackup()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-sm shadow-emerald-600/30 transition active:scale-95 flex items-center gap-1.5 cursor-pointer">
+              <span>🔄</span>
+              <span>ซิงค์ข้อมูลทั้งหมดเดี๋ยวนี้ (Full Sync)</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="md:col-span-2 space-y-3">
+            <div>
+              <label class="text-xs font-bold text-slate-700 flex items-center justify-between">
+                <span>Google Spreadsheet ID</span>
+                <span class="text-[11px] text-slate-400 font-normal">แผ่นงานปลายทางสำหรับสำรองข้อมูล</span>
+              </label>
+              <div class="mt-1.5 flex gap-2">
+                <input type="text" id="adminBackupSheetId" placeholder="1cgrCQHYeGWnZpcaw11yHzVE_FncPQ4WCLTU8IOr33W4" value="1cgrCQHYeGWnZpcaw11yHzVE_FncPQ4WCLTU8IOr33W4" class="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-mono transition">
+                <button type="button" onclick="saveAdminBackupSheetId()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs border border-slate-200 transition active:scale-95 shrink-0">
+                  💾 บันทึก ID
+                </button>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">
+                💡 ลิงก์ชีตปัจจุบัน: <a id="adminBackupSheetLink" href="https://docs.google.com/spreadsheets/d/1cgrCQHYeGWnZpcaw11yHzVE_FncPQ4WCLTU8IOr33W4/edit" target="_blank" class="text-emerald-700 underline font-mono break-all hover:text-emerald-900">https://docs.google.com/spreadsheets/d/1cgrCQHYeGWnZpcaw11yHzVE_FncPQ4WCLTU8IOr33W4/edit</a>
+              </p>
+            </div>
+
+            <!-- Information badges about the sheets -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+              <div class="p-3 bg-blue-50/70 border border-blue-200/70 rounded-2xl">
+                <div class="text-[11px] font-bold text-blue-900 flex items-center gap-1.5">
+                  <span>📋</span> <span>Visitor_Logs</span>
+                </div>
+                <div class="text-[10px] text-blue-700 mt-0.5">
+                  บันทึกประวัติการเข้า-ออก, บัตรประชาชน, ชื่อ, รูปถ่าย, เวลา, และลายเซ็นผู้รับ
+                </div>
+              </div>
+              <div class="p-3 bg-emerald-50/70 border border-emerald-200/70 rounded-2xl">
+                <div class="text-[11px] font-bold text-emerald-900 flex items-center gap-1.5">
+                  <span>🏷️</span> <span>Visitor_Passes</span>
+                </div>
+                <div class="text-[10px] text-emerald-700 mt-0.5">
+                  รหัสบัตรคล้องคอ (V-001...), สถานะบัตร (available / in_use), และเวลาอัปเดต
+                </div>
+              </div>
+              <div class="p-3 bg-indigo-50/70 border border-indigo-200/70 rounded-2xl">
+                <div class="text-[11px] font-bold text-indigo-900 flex items-center gap-1.5">
+                  <span>🏢</span> <span>Visitor_Departments</span>
+                </div>
+                <div class="text-[10px] text-indigo-700 mt-0.5">
+                  รายชื่อแผนก/หน่วยงานที่เปิดให้เลือกในระบบ
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sync Status Box -->
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col justify-between space-y-3">
+            <div>
+              <div class="text-xs font-bold text-slate-800 flex items-center gap-2">
+                <span>⚡</span> <span>สถานะการสำรองข้อมูล</span>
+              </div>
+              <div class="mt-2.5 space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-500">Auto-Sync เรียลไทม์:</span>
+                  <span class="text-emerald-700 font-bold flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    ทำงานอัตโนมัติ
+                  </span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-500">ซิงค์แบบเต็มล่าสุด:</span>
+                  <span id="backupLastSyncTime" class="font-medium text-slate-700">-</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-200/80">
+              <div class="text-[11px] text-slate-500 leading-tight">
+                🔒 ข้อมูลจะถูกเขียนลง Google Sheet ปลายทางแบบ Real-time ข้อมูลสำรองจะปลอดภัยและสามารถใช้ทำสรุปรายงาน Pivot Table ได้ทันที
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1887,6 +1997,20 @@
           }
         })
         .getSystemConfigForAdmin();
+
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res && res.sheetId) {
+            const el = document.getElementById('adminBackupSheetId');
+            if (el) el.value = res.sheetId;
+            const linkEl = document.getElementById('adminBackupSheetLink');
+            if (linkEl && res.sheetUrl) {
+              linkEl.href = res.sheetUrl;
+              linkEl.innerText = res.sheetUrl;
+            }
+          }
+        })
+        .getBackupSheetConfig();
     }
 
     function autoDetectWebAppUrl() {
@@ -1979,6 +2103,98 @@
           loadAdminConfig();
         })
         .testGeminiConnection();
+    }
+
+    // ==========================================
+    // GOOGLE SHEETS DATABASE BACKUP HANDLERS
+    // ==========================================
+    function openBackupGoogleSheet() {
+      const sheetId = document.getElementById('adminBackupSheetId') ? document.getElementById('adminBackupSheetId').value.trim() : '1cgrCQHYeGWnZpcaw11yHzVE_FncPQ4WCLTU8IOr33W4';
+      const url = 'https://docs.google.com/spreadsheets/d/' + (sheetId || '1cgrCQHYeGWnZpcaw11yHzVE_FncPQ4WCLTU8IOr33W4') + '/edit';
+      window.open(url, '_blank');
+    }
+
+    function saveAdminBackupSheetId() {
+      const sheetId = document.getElementById('adminBackupSheetId') ? document.getElementById('adminBackupSheetId').value.trim() : '';
+      if (!sheetId) {
+        Swal.fire('กรุณาระบุ ID', 'กรุณาระบุ Google Spreadsheet ID ที่ต้องการใช้สำรองข้อมูล', 'warning');
+        return;
+      }
+      Swal.fire({ title: 'กำลังบันทึก ID แผ่นงาน...', didOpen: () => Swal.showLoading() });
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res && res.success) {
+            Swal.fire('บันทึกสำเร็จ', 'อัปเดต Google Sheet ID สำหรับสำรองข้อมูลเรียบร้อยแล้ว', 'success');
+            const linkEl = document.getElementById('adminBackupSheetLink');
+            if (linkEl && res.sheetUrl) {
+              linkEl.href = res.sheetUrl;
+              linkEl.innerText = res.sheetUrl;
+            }
+          } else {
+            Swal.fire('ผิดพลาด', (res && res.message) || 'ไม่สามารถบันทึกได้', 'error');
+          }
+        })
+        .withFailureHandler(err => {
+          Swal.fire('เกิดข้อผิดพลาด', err.message || err.toString(), 'error');
+        })
+        .saveBackupSheetId(sheetId);
+    }
+
+    function triggerManualFullBackup() {
+      const sheetId = document.getElementById('adminBackupSheetId') ? document.getElementById('adminBackupSheetId').value.trim() : '';
+      Swal.fire({
+        title: 'ยืนยันการสำรองข้อมูลทั้งหมด?',
+        text: 'ระบบจะดึงข้อมูลผู้มาติดต่อ (Logs), บัตรผ่าน (Passes) และแผนก (Departments) จากฐานข้อมูลมาสำรองและเขียนลง Google Sheet',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#059669',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'ใช่, ซิงค์ข้อมูลเดี๋ยวนี้',
+        cancelButtonText: 'ยกเลิก'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          Swal.fire({
+            title: 'กำลังสำรองข้อมูลลง Google Sheet...',
+            html: '<div class="text-xs text-slate-500 mt-1">กรุณารอสักครู่ ระบบกำลังเขียนแผ่นงาน Visitor_Logs, Visitor_Passes และ Visitor_Departments...</div>',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+          });
+
+          google.script.run
+            .withSuccessHandler(res => {
+              if (res && res.success) {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('th-TH') + ' (' + now.toLocaleDateString('th-TH') + ')';
+                const lastSyncEl = document.getElementById('backupLastSyncTime');
+                if (lastSyncEl) lastSyncEl.innerText = timeStr;
+
+                Swal.fire({
+                  icon: 'success',
+                  title: 'สำรองข้อมูลสำเร็จ!',
+                  html: `
+                    <div class="text-left text-xs space-y-2 mt-2">
+                      <p class="font-medium text-slate-700">${res.message}</p>
+                      <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 font-mono text-[11px] break-all">
+                        Spreadsheet ID: ${res.sheetId || sheetId}
+                      </div>
+                      <div class="pt-2 text-center">
+                        <a href="${res.sheetUrl || ('https://docs.google.com/spreadsheets/d/' + (res.sheetId || sheetId) + '/edit')}" target="_blank" class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition">
+                          📊 เปิดดูข้อมูลใน Google Sheet ทันที
+                        </a>
+                      </div>
+                    </div>
+                  `
+                });
+              } else {
+                Swal.fire('การสำรองข้อมูลไม่สมบูรณ์', (res && res.message) || 'เกิดข้อผิดพลาดในการเขียนข้อมูลลง Google Sheet', 'error');
+              }
+            })
+            .withFailureHandler(err => {
+              Swal.fire('เกิดข้อผิดพลาด', err.message || err.toString(), 'error');
+            })
+            .syncFullBackupToGoogleSheet(sheetId);
+        }
+      });
     }
 
     // ==========================================
